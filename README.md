@@ -1,9 +1,9 @@
-# SSEC-JHU <package_name>
+# SSEC-JHU flfm
 
-[![CI](https://github.com/ssec-jhu/base-template/actions/workflows/ci.yml/badge.svg)](https://github.com/ssec-jhu/base-template/actions/workflows/ci.yml)
-[![Documentation Status](https://readthedocs.org/projects/ssec-jhu-base-template/badge/?version=latest)](https://ssec-jhu-base-template.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/ssec-jhu/base-template/branch/main/graph/badge.svg?token=0KPNKHRC2V)](https://codecov.io/gh/ssec-jhu/base-template)
-[![Security](https://github.com/ssec-jhu/base-template/actions/workflows/security.yml/badge.svg)](https://github.com/ssec-jhu/base-template/actions/workflows/security.yml)
+[![CI](git@github.com:ssec-jhu/flfm.git/actions/workflows/ci.yml/badge.svg)](git@github.com:ssec-jhu/flfm.git/actions/workflows/ci.yml)
+[![Documentation Status](https://readthedocs.org/projects/flfm/badge/?version=latest)](https://flfm.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/git@github.com:ssec-jhu/flfm/branch/main/graph/badge.svg?token=0KPNKHRC2V)](https://codecov.io/gh/git@github.com:ssec-jhu/flfm)
+[![Security](git@github.com:ssec-jhu/flfm.git/actions/workflows/security.yml/badge.svg)](git@github.com:ssec-jhu/flfm.git/actions/workflows/security.yml)
 <!---[![DOI](https://zenodo.org/badge/<insert_ID_number>.svg)](https://zenodo.org/badge/latestdoi/<insert_ID_number>) --->
 
 
@@ -67,11 +67,11 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
   #### with Docker:
   * Follow the above [Build with Docker instructions](#with-docker).
   * Run container from image: ``docker run -d -p 8000:8000 <image_name>``. _NOTE: ``-p 8000:8000`` is specific to the example application using port 8000._
-  * Alternatively, images can be pulled from ``ghcr.io/ssec-jhu/`` e.g., ``docker pull ghcr.io/ssec-jhu/base-template:pr-1``.
+  * Alternatively, images can be pulled from ``ghcr.io/ssec-jhu/`` e.g., ``docker pull ghcr.io/git@github.com:ssec-jhu/flfm:pr-1``.
 
   #### with Python ecosystem:
   * Follow the above [Build with Python ecosystem instructions](#with-python-ecosystem).
-  * Run ``uvicorn package_name.app.main:app --host 0.0.0.0 --port", "8000``. _NOTE: This is just an example and is obviously application dependent._
+  * Run ``uvicorn flfm.app.main:app --host 0.0.0.0 --port", "8000``. _NOTE: This is just an example and is obviously application dependent._
 
 ### Usage:
 To be completed by child repo.
@@ -85,7 +85,7 @@ _NOTE: The following steps require ``pip install -r requirements/dev.txt``._
 * Run tox ``tox``. This will run all of linting, security, test, docs and package building within tox virtual environments.
 * To run an individual step, use ``tox -e {step}`` for example, ``tox -e test``, ``tox -e build-docs``, etc.
 
-Typically, the CI tests run in github actions will use tox to run as above. See also [ci.yml](https://github.com/ssec-jhu/base-template/blob/main/.github/workflows/ci.yml).
+Typically, the CI tests run in github actions will use tox to run as above. See also [ci.yml](git@github.com:ssec-jhu/flfm.git/blob/main/.github/workflows/ci.yml).
 
 ## Outside of tox:
 
@@ -105,7 +105,7 @@ Facilitates in testing typos, syntax, style, and other simple code analysis test
 ### Security Checks:
 Facilitates in checking for security concerns using [Bandit](https://bandit.readthedocs.io/en/latest/index.html).
  * ``cd`` into repo dir.
- * ``bandit --severity-level=medium -r package_name``
+ * ``bandit --severity-level=medium -r flfm``
 
 ### Unit Tests:
 Facilitates in testing core package functionality at a modular level.

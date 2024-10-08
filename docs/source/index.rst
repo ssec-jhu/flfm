@@ -1,7 +1,7 @@
-Welcome to <package_name>'s documentation!
+Welcome to flfm's documentation!
 ==========================================
 
-**<package_name>** is a Python library for...
+**flfm** is a Python library for...
 
 Check out the :doc:`usage` section for further information, including
 how to :ref:`installation` the project.

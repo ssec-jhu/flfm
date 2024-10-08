@@ -1,5 +1,5 @@
-from package_name import __project__, __version__
-from package_name.util import find_package_location, find_repo_location
+from flfm import __project__, __version__
+from flfm.util import find_package_location, find_repo_location
 
 
 def test_find_repo_location():
