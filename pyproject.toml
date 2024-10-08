@@ -1,0 +1,117 @@
+[project]
+name = "package_name"  # Replace package_name with actual name (it's just a template).
+dynamic = ["version"]
+authors = [
+    {name = "Scientifc Software Engineering Center at JHU", email = "ssec@jhu.edu"},
+]
+description = ""
+readme = "README.md"
+license = {file = "LICENSE"}
+
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[all]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "bandit>=1.7",
+    "build",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "setuptools>=61.2",
+    "setuptools_scm[toml]>=8.0",
+    "tox"
+]
+docs = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "sphinx_book_theme",
+    "sphinx-automodapi",
+    "nbsphinx"
+]
+
+[project.urls]
+homepage = "https://github.com/ssec-jhu/base-template"
+documentation = "https://github.com/ssec-jhu/base-template"
+repository = "https://github.com/ssec-jhu/base-template"
+
+[build-system]
+requires = ["setuptools>=61.2", "setuptools_scm[toml]>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+exclude-package-data = {"*" = ["tests/*"]}
+
+[tool.setuptools.packages.find]
+include = ["package_name*"]
+exclude = ["*.tests*"]
+
+[tool.setuptools_scm]
+write_to = "package_name/_version.py"  # Replace package_name with actual name (it's just a template).
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+
+[tool.ruff]
+line-length = 120
+lint.select = ["ALL"]
+lint.ignore = [
+    "ANN002",  # https://docs.astral.sh/ruff/rules/missing-type-args/
+    "ANN003",  # https://docs.astral.sh/ruff/rules/missing-type-kwargs/
+    "ANN101",  # https://docs.astral.sh/ruff/rules/missing-type-self/
+    "ANN102",  # https://docs.astral.sh/ruff/rules/missing-type-cls/
+    "ANN401",  # https://docs.astral.sh/ruff/rules/any-type/
+    "PLR0913",  # https://docs.astral.sh/ruff/rules/too-many-arguments/
+    "EM101",  # https://docs.astral.sh/ruff/rules/raw-string-in-exception/
+    "EM102",  # https://docs.astral.sh/ruff/rules/f-string-in-exception/
+    "TRY003",  # https://docs.astral.sh/ruff/rules/raise-vanilla-args/
+    "D407",  # https://docs.astral.sh/ruff/rules/dashed-underline-after-section/
+    "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/
+    "ISC001", # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/
+]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "docs",
+    "node_modules",
+    "venv",
+    "_version.py"
+]
+target-version = "py311"
+
+[tool.ruff.lint.pydocstyle] # https://docs.astral.sh/ruff/settings/#lint_pydocstyle_convention
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"**/test{s,}/*.py" = [
+    "S101",  # https://docs.astral.sh/ruff/rules/assert/
+    "D",  # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+    "ARG001",  # https://docs.astral.sh/ruff/rules/unused-function-argument/
+    "INP",  # https://docs.astral.sh/ruff/rules/#flake8-no-pep420-inp
+    "ANN",  # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"  # https://docs.astral.sh/ruff/settings/#lint_flake8-quotes_docstring-quotes
+inline-quotes = "double"  # https://docs.astral.sh/ruff/settings/#lint_flake8-quotes_inline-quotes
+multiline-quotes = "double"  # https://docs.astral.sh/ruff/settings/#lint_flake8-quotes_multiline-quotes
