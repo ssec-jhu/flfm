@@ -1,0 +1,15 @@
+FROM opencv_image as flfm
+
+WORKDIR /
+COPY flfm/ /flfm
+
+# Compile Reconstruct_FLFM.cpp.
+RUN g++ flfm/src/cpp/Reconstruct_FLFM.cpp -o flfm.exe \
+    -I/usr/local/include/opencv4/ \
+    -I/usr/local/cuda/include \
+    -lopencv_core \
+    -lopencv_cudaimgproc \
+    -lcufft \
+    -lopencv_cudaarithm \
+    -lopencv_imgproc \
+    -lopencv_imgcodecs
