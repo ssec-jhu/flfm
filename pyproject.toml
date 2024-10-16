@@ -33,9 +33,9 @@ docs = [
 ]
 
 [project.urls]
-homepage = "git@github.com:ssec-jhu/flfm.git"
-documentation = "git@github.com:ssec-jhu/flfm.git"
-repository = "git@github.com:ssec-jhu/flfm.git"
+homepage = "https://github.com/ssec-jhu/flfm.git"
+documentation = "https://github.com/ssec-jhu/flfm.git"
+repository = "https://github.com/ssec-jhu/flfm.git"
 
 [build-system]
 requires = ["setuptools>=61.2", "setuptools_scm[toml]>=8.0"]
