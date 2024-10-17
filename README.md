@@ -50,7 +50,9 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
   #### with Docker:
   * Download & install Docker - see [Docker install docs](https://docs.docker.com/get-docker/).
   * ``cd`` into repo dir.
-  * Build image: ``docker build -t <image_name> .``
+    * OpneCV with CUDA support: ``docker buildx build -f docker/Dockerfile.opencv --platform linux/amd64 . -t opencv_image`` 
+    * flfm.exe: ``docker buildx build -f docker/Dockerfile.flfm --platform linux/amd64 . -t flfm``
+  * Run container interactively: ``docker run --platform linux/amd64 -it flfm  sh``
 
   #### with Python ecosystem:
   * ``cd`` into repo dir.

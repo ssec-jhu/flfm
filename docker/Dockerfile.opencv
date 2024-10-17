@@ -1,0 +1,27 @@
+FROM nvidia/cuda:12.3.2-devel-ubi8 AS opencv_with_cuda
+
+# install git
+RUN yum install git -y
+
+# clone opencv ver 4.9.0
+RUN git clone https://github.com/opencv/opencv.git
+WORKDIR /opencv
+RUN git checkout 4.9.0
+WORKDIR ../
+
+# clone opencv_contrib ver 4.9.0
+RUN git clone https://github.com/opencv/opencv_contrib.git
+WORKDIR /opencv_contrib
+RUN git checkout 4.9.0
+WORKDIR ../
+
+# install cmake
+RUN yum install cmake -y
+
+# build opencv with cuda support
+WORKDIR /build_opencv
+RUN cmake -DCMAKE_BUILD_TYPE=Release -DWITH_CUDA=ON -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules ../opencv/
+RUN make -j18
+RUN make install -j18
+WORKDIR ../
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib64/
