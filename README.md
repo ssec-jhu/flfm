@@ -32,6 +32,11 @@ What's included in this template:
 
 # Installation, Build, & Run instructions
 
+### Git LFS:
+
+ * This repo uses git Large File Storage (git-lfs) for tracking data files, i.e., image file. To download these data
+   files git-lfs is required. To install git-lfs please follow these [git-lfs instructions](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).  
+
 ### Conda:
 
 For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf).
