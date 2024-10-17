@@ -182,8 +182,11 @@ int main()
     //
     // -----------------------------------------
 
-    std::string filename_PSF = "../../Standard dataset/Exp_PSF.tif";
-
+    //Date files.
+    // TODO: Make these args of main().
+    std::string filename_PSF = "data/measured_psf.tif";
+    std::string filename_LF = "data/light_field_image.tif"; // BUG: If image isn't normalized, information abotu intensity is lost on conversion during import
+    std::string filename_reconstructed_image = "data/reconstructed_image.tif";
 
     //THESE CAN BOTH BE MEASURED FROM THE IMAGE
     int d = 41;
@@ -280,7 +283,6 @@ int main()
     // -----------------------------------------
 
     // Open LF image
-    std::string filename_LF = "../../Standard dataset/LFImage.tif"; // BUG: If image isn't normalized, information abotu intensity is lost on conversion during import
     Mat img = cv::imread(filename_LF);
     if (img.empty()) {
         std::cerr << "Error loading" << filename_LF << std::endl; 
@@ -327,7 +329,7 @@ int main()
         cropped_reconst_volume.push_back(masked_aux_mat);
     }
 
-    cv::imwrite("../../Standard dataset/ReconstructedVolumes/recon_OurCode.tif", cropped_reconst_volume);
+    cv::imwrite(filename_reconstructed_image, cropped_reconst_volume);
 
     // Destroy all cuFFT plans
     cufftDestroy(forward);
