@@ -2,6 +2,7 @@ FROM opencv_image as flfm
 
 WORKDIR /
 COPY flfm/ /flfm
+COPY data/ /data
 
 # Compile Reconstruct_FLFM.cpp.
 RUN g++ flfm/src/cpp/Reconstruct_FLFM.cpp -o flfm.exe \
