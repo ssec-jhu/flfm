@@ -1,9 +1,9 @@
 # SSEC-JHU flfm
 
-[![CI](git@github.com:ssec-jhu/flfm.git/actions/workflows/ci.yml/badge.svg)](git@github.com:ssec-jhu/flfm.git/actions/workflows/ci.yml)
+[![CI](https://github.com/ssec-jhu/flfm/actions/workflows/ci.yml/badge.svg)](https://github.com/ssec-jhu/flfm/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/flfm/badge/?version=latest)](https://flfm.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/git@github.com:ssec-jhu/flfm/branch/main/graph/badge.svg?token=0KPNKHRC2V)](https://codecov.io/gh/git@github.com:ssec-jhu/flfm)
-[![Security](git@github.com:ssec-jhu/flfm.git/actions/workflows/security.yml/badge.svg)](git@github.com:ssec-jhu/flfm.git/actions/workflows/security.yml)
+[![codecov](https://codecov.io/gh/ssec-jhu/flfm/graph/badge.svg?token=l3ND0EA9dE)](https://codecov.io/gh/ssec-jhu/flfm)
+[![Security](https://github.com/ssec-jhu/flfm/actions/workflows/security.yml/badge.svg)](https://github.com/ssec-jhu/flfm/actions/workflows/security.yml)
 <!---[![DOI](https://zenodo.org/badge/<insert_ID_number>.svg)](https://zenodo.org/badge/latestdoi/<insert_ID_number>) --->
 
 
@@ -92,7 +92,7 @@ _NOTE: The following steps require ``pip install -r requirements/dev.txt``._
 * Run tox ``tox``. This will run all of linting, security, test, docs and package building within tox virtual environments.
 * To run an individual step, use ``tox -e {step}`` for example, ``tox -e test``, ``tox -e build-docs``, etc.
 
-Typically, the CI tests run in github actions will use tox to run as above. See also [ci.yml](git@github.com:ssec-jhu/flfm.git/blob/main/.github/workflows/ci.yml).
+Typically, the CI tests run in github actions will use tox to run as above. See also [ci.yml](https://github.com/ssec-jhu/flfm/blob/main/.github/workflows/ci.yml).
 
 ## Outside of tox:
 
