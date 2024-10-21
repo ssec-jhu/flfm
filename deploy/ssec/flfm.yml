@@ -19,6 +19,10 @@ spec:
     spec:
       containers:
       - name: flfm
+        securityContext:
+          capabilities:
+            add:
+              - SYS_ADMIN
         image: containers.repo.sciserver.org/jnoss/flfm:latest
         imagePullPolicy: Always
         command:
