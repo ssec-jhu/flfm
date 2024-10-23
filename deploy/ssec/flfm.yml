@@ -21,9 +21,6 @@ spec:
       - name: flfm
         securityContext:
           privileged: true
-          capabilities:
-            add:
-              - SYS_ADMIN
         image: containers.repo.sciserver.org/jnoss/flfm:latest
         imagePullPolicy: Always
         command:
