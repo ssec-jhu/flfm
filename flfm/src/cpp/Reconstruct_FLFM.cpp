@@ -182,7 +182,7 @@ int main()
     //
     // -----------------------------------------
 
-    //Date files.
+    //Data files.
     // TODO: Make these args of main().
     std::string filename_PSF = "data/measured_psf.tif";
     std::string filename_LF = "data/light_field_image.tif"; // BUG: If image isn't normalized, information abotu intensity is lost on conversion during import
