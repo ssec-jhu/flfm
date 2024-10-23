@@ -1,0 +1,14 @@
+FROM opencv_image as valencia
+
+WORKDIR /
+COPY flfm/ /flfm
+COPY data/ /data
+
+# Compile Diffraction_PSF.cpp.
+RUN g++ flfm/src/valencia/Diffraction_PSF.cpp -o valencia.exe \
+    -I/usr/local/include/opencv4/ \
+    -I/usr/local/cuda/include \
+    -lopencv_core \
+    -lopencv_cudaarithm \
+    -lopencv_imgproc \
+    -lopencv_imgcodecs

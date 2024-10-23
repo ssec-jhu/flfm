@@ -1,0 +1,12 @@
+Copyright (C) 2024 Nicolo Incardona - All Rights Reserved
+
+All the files included are shared upon agreement, for use for academic purpose only.
+Commercial use in source and binary forms, with or without modifications, is strictly prohibited.
+Unauthorized sharing in source and binary forms, with or without modifications, via any medium is strictly prohibited.
+ 
+When using the code included, with or without modifications, or any other implementations based on it, please reference the following citation:
+Incardona, N., Tolosa, A., Saavedra, G., Martinez-Corral, M., & Sanchez-Ortiga, E. (2023). "Fast and robust wave optics-based reconstruction protocol for Fourier lightfield microscopy". Optics and Lasers in Engineering, 161, 107336.
+ 
+
+Proprietary and confidential
+Written by {Nicolo Incardona} <{nicolo.incardona@uv.es}>, {04/02/2024}
