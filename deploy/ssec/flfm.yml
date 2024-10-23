@@ -1,0 +1,42 @@
+# Deployment file for SSEC GPU cluster.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flfm
+  namespace: jnoss
+  labels:
+    app: flfm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flfm
+  template:
+    metadata:
+      labels:
+        app: flfm
+    spec:
+      containers:
+      - name: flfm
+        securityContext:
+          privileged: true
+        image: containers.repo.sciserver.org/jnoss/flfm:latest
+        imagePullPolicy: Always
+        command:
+          - sleep
+          - "999999999"
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - mountPath: /sciserver/vc_crypt/ssec/jnoss
+          name: sciserver-mount
+          readOnly: false
+      nodeSelector:
+        nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB
+      volumes:
+        - name: sciserver-mount
+          nfs:
+            path: /srv/vc_crypt/ssec/jnoss
+            server: sciserver-fs1
