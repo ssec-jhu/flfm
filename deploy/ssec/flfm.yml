@@ -20,6 +20,7 @@ spec:
       containers:
       - name: flfm
         securityContext:
+          privileged: true
           capabilities:
             add:
               - SYS_ADMIN
@@ -35,6 +36,8 @@ spec:
         - mountPath: /sciserver/vc_crypt/ssec/jnoss
           name: sciserver-mount
           readOnly: false
+      nodeSelector:
+        nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB
       volumes:
         - name: sciserver-mount
           nfs:
