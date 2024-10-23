@@ -184,9 +184,9 @@ int main()
 
     //Data files.
     // TODO: Make these args of main().
-    std::string filename_PSF = "data/measured_psf.tif";
-    std::string filename_LF = "data/light_field_image.tif"; // BUG: If image isn't normalized, information abotu intensity is lost on conversion during import
-    std::string filename_reconstructed_image = "data/reconstructed_image.tif";
+    std::string filename_PSF = "data/yale/measured_psf.tif";
+    std::string filename_LF = "data/yale/light_field_image.tif"; // BUG: If image isn't normalized, information abotu intensity is lost on conversion during import
+    std::string filename_reconstructed_image = "data/yale/reconstructed_image.tif";
 
     //THESE CAN BOTH BE MEASURED FROM THE IMAGE
     int d = 41;
