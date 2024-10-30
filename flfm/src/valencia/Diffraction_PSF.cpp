@@ -335,6 +335,8 @@ int main()
     std::string filename_reconstructed_image = "data/valencia/reconstructed_image.tif";
     std::string filename_calibration = "data/valencia/calibration.txt";
 
+    bool generate_psf = true;
+
 	// Parameters of capture
 	double lambda = 555.0;						// illumination wavelength [nm]
 	double indexRefr = 1.333;					// refractive index of medium
@@ -356,151 +358,167 @@ int main()
 
 	auto tstart_l1 = std::chrono::steady_clock::now();
 
+    // Open LF image to deconvolve and convert to greyscale
+    cv::Mat img = cv::imread(filename_LF);
+
+    int row = img.rows - 1;          // Row to delete.
+    int col = img.cols - 1;          // Column to delete.
+    cv::Rect rect(0, 0, col, row);
+    img(rect).copyTo(img);
+    cvtColor(img, img, COLOR_BGR2GRAY);
+
+
 	// Microlens PSF creation
-	float a = (float)(2 * 3.1415 * na / lambda);
-	double dRing = 0.6 * lambda / (pixelSpacing * na);
-
-	auto pixels = new float[d][455*455];
-
-	int rMax = 2 + (int)sqrt(ic * ic + jc * jc);
-	float* integral = new float[rMax];
-	double upperLimit = tan(asin(na / indexRefr));
-	double waveNumber = 2 * 3.1415 * indexRefr / lambda;
-	for (int k = 0; k < d; k++) {
-		double kz = waveNumber * ((double)k - (double)kc) * sliceSpacing;
-		for (int r = 0; r < rMax; r++) {
-			double kr = waveNumber * r * pixelSpacing;
-			int numCyclesJ = 1 + (int)(kr * upperLimit / 3);
-			int numCyclesCos = 1 + (int)(abs(kz) * 0.36 * upperLimit / 6);
-			int numCycles = numCyclesJ;
-			if (numCyclesCos > numCycles)numCycles = numCyclesCos;
-			int nStep = 2 * stepsPerCycle * numCycles;
-			int m = nStep / 2;
-			double step = upperLimit / nStep;
-			double sumR = 0;
-			double sumI = 0;
-			//Simpson's rule
-			//Assume that the sperical aberration varies with the  (% aperture)^4
-			//f(a) = f(0) = 0, so no contribution
-			double u = 0;
-			double bessel = 1;
-			double root = 1;
-			double angle = kz;
-			//2j terms
-			for (int j = 1; j < m; j++) {
-				u = 2 * (double)j * step;
-				kz = waveNumber * (((double)k - (double)kc) * sliceSpacing +
-					sa * (u / upperLimit) * (u / upperLimit) * (u / upperLimit) * (u / upperLimit));
-				root = sqrt(1 + u * u);
-				bessel = J0(kr * u / root);
-				angle = kz / root;
-				sumR += 2 * cos(angle) * u * bessel / 2;
-				sumI += 2 * sin(angle) * u * bessel / 2;
-			}
-
-			//2j - 1 terms
-			for (int j = 1; j <= m; j++) {
-				u = (2 * (double)j - 1) * step;
-				kz = waveNumber * (((double)k - (double)kc) * sliceSpacing +
-					sa * (u / upperLimit) * (u / upperLimit) * (u / upperLimit) * (u / upperLimit));
-				root = sqrt(1 + u * u);
-				bessel = J0(kr * u / root);
-				angle = kz / root;
-				sumR += 4 * cos(angle) * u * bessel / 2;
-				sumI += 4 * sin(angle) * u * bessel / 2;
-			}
-
-			//f(b)
-			u = upperLimit;
-			kz = waveNumber * (((double)k - (double)kc) * sliceSpacing + sa);
-			root = sqrt(1 + u * u);
-			bessel = J0(kr * u / root);
-			angle = kz / root;
-			sumR += cos(angle) * u * bessel / 2;
-			sumI += sin(angle) * u * bessel / 2;
-
-			integral[r] = (float)(step * step * (sumR * sumR + sumI * sumI) / 9);
-		}
-		double uSlices = ((double)k - (double)kc);
-		for (int j = 0; j < h; j++) {
-			for (int i = 0; i < w; i++) {
-				double rPixels = sqrt((i - ic) * (i - ic) + (j - jc) * (j - jc));
-				pixels[k][i + w * j] = interp(integral, (float)rPixels);
-				//pixels[kSym][i + w*j] = interp(integral,(float)rPixels);
-			}
-		}
-	}
-	int n = w * h;
-
-	if (normalization == 2) {
-		float peak = pixels[kc][ic + w * jc];
-		for (int k = 0; k < d; k++) {
-			for (int ind = 0; ind < n; ind++) {
-				if (pixels[k][ind] > peak)
-					peak = pixels[k][ind];
-			}
-		}
-		float f = 255 / peak;
-		for (int k = 0; k < d; k++) {
-			for (int ind = 0; ind < n; ind++) {
-				pixels[k][ind] *= f;
-				if (pixels[k][ind] > 255)pixels[k][ind] = 255;
-			}
-		}
-	}
-	//
-	////////////////////////
-	//////////////////////// CODE FOR MICROLENS PSF GENERATION (end)
-	////////////////////////
-
-
-	std::vector<cv::Mat> PSF_mat;
-	cv::Mat psf_slice(455, 455, CV_8U);
-	for (int s = 0; s < d; s++) {
-		uchar* temp = new uchar[455 * 455];
-		for (int i = 0; i < 455 * 455; i++) {
-			temp[i] = (uchar)pixels[s][i];
-		}
-		psf_slice.data = temp;
-		PSF_mat.push_back(psf_slice);
-	}
-
-	// Open LF image to deconvolve and convert to greyscale
-	cv::Mat img = cv::imread(filename_LF);
-
-	int row = img.rows - 1;          // Row to delete.
-	int col = img.cols - 1;          // Column to delete.
-	cv::Rect rect(0, 0, col, row);
-	img(rect).copyTo(img);
-	cvtColor(img, img, COLOR_BGR2GRAY);
-
-
-	// LF PSF creation
-	GetCoordinates(filename_calibration);
-
-	int ov_samp = 5;
-	av_pitch = w;
-
 	vector<Mat> LF_psf_mat;
-	double vals_sum;
-	//d = d - 6;
-	for (int s = 0; s < d; s++) {
-		Mat interp_PSF_slice;
-		resize(PSF_mat.at(s), interp_PSF_slice, PSF_mat.at(s).size() * ov_samp, 0, 0, INTER_NEAREST);
-		Mat LF_psf_slice(img.size() * ov_samp, CV_8U, Scalar(0));
-		for (int cc = 0; cc < centers.size(); cc++)
-		{
-			interp_PSF_slice.copyTo(LF_psf_slice.colRange(centers[cc].x * ov_samp - int(floor(av_pitch / 2.0 * (float)ov_samp)) + int(round((s - kc) * norm_distances[cc].x * ov_samp)), centers[cc].x * ov_samp + int(floor(av_pitch / 2.0 * (float)ov_samp + 1)) + int(round((s - kc) * norm_distances[cc].x * ov_samp))).rowRange(centers[cc].y * ov_samp - int(floor(av_pitch / 2.0 * (float)ov_samp)) + int(round((s - kc) * norm_distances[cc].y * ov_samp)), centers[cc].y * ov_samp + int(floor(av_pitch / 2.0 * (float)ov_samp)) + int(round((s - kc) * norm_distances[cc].y * ov_samp)) + 1));
-		}
-		resize(LF_psf_slice, LF_psf_slice, img.size(), 0, 0, INTER_CUBIC);
 
-		LF_psf_slice.convertTo(LF_psf_slice, CV_32F);
-		LF_psf_slice *= 1.0 / 255;
-		flip(LF_psf_slice, LF_psf_slice, -1);
-		vals_sum = sum(LF_psf_slice)[0];
-		LF_psf_slice = LF_psf_slice / vals_sum;
-		LF_psf_mat.push_back(LF_psf_slice);
-	}
+	if (generate_psf) {
+        float a = (float)(2 * 3.1415 * na / lambda);
+        double dRing = 0.6 * lambda / (pixelSpacing * na);
+
+        auto pixels = new float[d][455*455];
+
+        int rMax = 2 + (int)sqrt(ic * ic + jc * jc);
+        float* integral = new float[rMax];
+        double upperLimit = tan(asin(na / indexRefr));
+        double waveNumber = 2 * 3.1415 * indexRefr / lambda;
+        for (int k = 0; k < d; k++) {
+            double kz = waveNumber * ((double)k - (double)kc) * sliceSpacing;
+            for (int r = 0; r < rMax; r++) {
+                double kr = waveNumber * r * pixelSpacing;
+                int numCyclesJ = 1 + (int)(kr * upperLimit / 3);
+                int numCyclesCos = 1 + (int)(abs(kz) * 0.36 * upperLimit / 6);
+                int numCycles = numCyclesJ;
+                if (numCyclesCos > numCycles)numCycles = numCyclesCos;
+                int nStep = 2 * stepsPerCycle * numCycles;
+                int m = nStep / 2;
+                double step = upperLimit / nStep;
+                double sumR = 0;
+                double sumI = 0;
+                //Simpson's rule
+                //Assume that the sperical aberration varies with the  (% aperture)^4
+                //f(a) = f(0) = 0, so no contribution
+                double u = 0;
+                double bessel = 1;
+                double root = 1;
+                double angle = kz;
+                //2j terms
+                for (int j = 1; j < m; j++) {
+                    u = 2 * (double)j * step;
+                    kz = waveNumber * (((double)k - (double)kc) * sliceSpacing +
+                        sa * (u / upperLimit) * (u / upperLimit) * (u / upperLimit) * (u / upperLimit));
+                    root = sqrt(1 + u * u);
+                    bessel = J0(kr * u / root);
+                    angle = kz / root;
+                    sumR += 2 * cos(angle) * u * bessel / 2;
+                    sumI += 2 * sin(angle) * u * bessel / 2;
+                }
+
+                //2j - 1 terms
+                for (int j = 1; j <= m; j++) {
+                    u = (2 * (double)j - 1) * step;
+                    kz = waveNumber * (((double)k - (double)kc) * sliceSpacing +
+                        sa * (u / upperLimit) * (u / upperLimit) * (u / upperLimit) * (u / upperLimit));
+                    root = sqrt(1 + u * u);
+                    bessel = J0(kr * u / root);
+                    angle = kz / root;
+                    sumR += 4 * cos(angle) * u * bessel / 2;
+                    sumI += 4 * sin(angle) * u * bessel / 2;
+                }
+
+                //f(b)
+                u = upperLimit;
+                kz = waveNumber * (((double)k - (double)kc) * sliceSpacing + sa);
+                root = sqrt(1 + u * u);
+                bessel = J0(kr * u / root);
+                angle = kz / root;
+                sumR += cos(angle) * u * bessel / 2;
+                sumI += sin(angle) * u * bessel / 2;
+
+                integral[r] = (float)(step * step * (sumR * sumR + sumI * sumI) / 9);
+            }
+            double uSlices = ((double)k - (double)kc);
+            for (int j = 0; j < h; j++) {
+                for (int i = 0; i < w; i++) {
+                    double rPixels = sqrt((i - ic) * (i - ic) + (j - jc) * (j - jc));
+                    pixels[k][i + w * j] = interp(integral, (float)rPixels);
+                    //pixels[kSym][i + w*j] = interp(integral,(float)rPixels);
+                }
+            }
+        }
+        int n = w * h;
+
+        if (normalization == 2) {
+            float peak = pixels[kc][ic + w * jc];
+            for (int k = 0; k < d; k++) {
+                for (int ind = 0; ind < n; ind++) {
+                    if (pixels[k][ind] > peak)
+                        peak = pixels[k][ind];
+                }
+            }
+            float f = 255 / peak;
+            for (int k = 0; k < d; k++) {
+                for (int ind = 0; ind < n; ind++) {
+                    pixels[k][ind] *= f;
+                    if (pixels[k][ind] > 255)pixels[k][ind] = 255;
+                }
+            }
+        }
+        //
+        ////////////////////////
+        //////////////////////// CODE FOR MICROLENS PSF GENERATION (end)
+        ////////////////////////
+
+
+        std::vector<cv::Mat> PSF_mat;
+        cv::Mat psf_slice(455, 455, CV_8U);
+        for (int s = 0; s < d; s++) {
+            uchar* temp = new uchar[455 * 455];
+            for (int i = 0; i < 455 * 455; i++) {
+                temp[i] = (uchar)pixels[s][i];
+            }
+            psf_slice.data = temp;
+            PSF_mat.push_back(psf_slice);
+        }
+
+        // LF PSF creation
+        GetCoordinates(filename_calibration);
+
+        int ov_samp = 5;
+        av_pitch = w;
+
+        double vals_sum;
+        //d = d - 6;
+        for (int s = 0; s < d; s++) {
+            Mat interp_PSF_slice;
+            resize(PSF_mat.at(s), interp_PSF_slice, PSF_mat.at(s).size() * ov_samp, 0, 0, INTER_NEAREST);
+            Mat LF_psf_slice(img.size() * ov_samp, CV_8U, Scalar(0));
+            for (int cc = 0; cc < centers.size(); cc++)
+            {
+                interp_PSF_slice.copyTo(LF_psf_slice.colRange(centers[cc].x * ov_samp - int(floor(av_pitch / 2.0 * (float)ov_samp)) + int(round((s - kc) * norm_distances[cc].x * ov_samp)), centers[cc].x * ov_samp + int(floor(av_pitch / 2.0 * (float)ov_samp + 1)) + int(round((s - kc) * norm_distances[cc].x * ov_samp))).rowRange(centers[cc].y * ov_samp - int(floor(av_pitch / 2.0 * (float)ov_samp)) + int(round((s - kc) * norm_distances[cc].y * ov_samp)), centers[cc].y * ov_samp + int(floor(av_pitch / 2.0 * (float)ov_samp)) + int(round((s - kc) * norm_distances[cc].y * ov_samp)) + 1));
+            }
+            resize(LF_psf_slice, LF_psf_slice, img.size(), 0, 0, INTER_CUBIC);
+
+            LF_psf_slice.convertTo(LF_psf_slice, CV_32F);
+            LF_psf_slice *= 1.0 / 255;
+            flip(LF_psf_slice, LF_psf_slice, -1);
+            vals_sum = sum(LF_psf_slice)[0];
+            LF_psf_slice = LF_psf_slice / vals_sum;
+            LF_psf_mat.push_back(LF_psf_slice);
+        }
+
+        // Write out generated PSF.
+        imwrite(filename_PSF, LF_psf_mat);
+    } else {
+       bool successH = imreadmulti(filename_PSF, LF_psf_mat, IMREAD_UNCHANGED);
+        if (!successH) {
+            std::cerr << "Error loading PSF" << std::endl;
+            return -1;
+        }
+        else {
+            std::cout << "Loaded PSF" << std::endl;
+        }
+    }
+
 
 	img.convertTo(img, CV_32F);
 	img *= 1.0 / 255;
@@ -559,5 +577,4 @@ int main()
 	//}
 
 	imwrite(filename_reconstructed_image, cropped_reconst_vol);
-	imwrite(filename_PSF, LF_psf_mat);
 }
