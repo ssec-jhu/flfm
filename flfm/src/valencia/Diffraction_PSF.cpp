@@ -60,6 +60,7 @@
 #include <opencv2/cudaarithm.hpp>
 #include <algorithm>
 #include <functional>
+#include <sstream>
 
 using namespace cv;
 using namespace std;
@@ -321,7 +322,7 @@ vector<Mat> RL_3Ddeconv(Mat img, vector<Mat> LF_PSF_mat, vector<Mat> rec_vol, in
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
 	////////////////////////
 	//////////////////////// CODE FOR MICROLENS PSF GENERATION (start)
@@ -336,6 +337,14 @@ int main()
     std::string filename_calibration = "data/valencia/calibration.txt";
 
     bool generate_psf = true;
+    if (argc > 1) {
+        std::istringstream(argv[1]) >> std::boolalpha >> generate_psf;
+    }
+    if (generate_psf) {
+        std::cout << "Generating PSF." << std::endl;
+    } else {
+        std::cout << "Not generating PSF, reading from file instead." << std::endl;
+    }
 
 	// Parameters of capture
 	double lambda = 555.0;						// illumination wavelength [nm]
