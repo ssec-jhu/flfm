@@ -1,0 +1,23 @@
+FROM mathworks/matlab:latest
+
+# The matlab image leaves you in /home/matlab/Documents/MATLAB/
+WORKDIR ../../../../
+
+# install git
+RUN sudo apt-get update
+RUN sudo apt install git -y
+
+# clone olaf ver v3.0
+WORKDIR /src
+RUN git clone https://gitlab.lrz.de/IP/olaf.git
+WORKDIR ./olaf
+RUN git checkout v3.0
+WORKDIR ../../
+
+WORKDIR /
+COPY flfm/ /flfm
+COPY data/ /data
+
+ENV MLM_LICENSE_FILE /sciserver/vc_crypt/ssec/jnoss/MLM_LICENSE_FILE
+
+#CMD ["matlab", "-nodisplay", "-nosplash", "-nodesktop", "-r", '"run('/src/olaf/Code/internal/mainFLFM.m'); exit;"']
