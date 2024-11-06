@@ -552,29 +552,29 @@ int main(int argc, char** argv)
 	std::cout << "Reconstruction plus PSF generation took " << elapsed_L1.count() << " millisecond (ms)." << endl;
 
 	// Save the results
-	vector<Mat> cropped_reconst_vol;
-	double max_val = 0;
-	for (int s = 0; s < d; s++) {
-		Mat aux_mat;
-		reconst_volume.at(s).colRange(img.size().width / 2 - int(floor(av_pitch / 2.0)), img.size().width / 2 + int(floor(av_pitch / 2.0) + 1)).rowRange(img.size().height / 2 - int(floor(av_pitch / 2.0)), img.size().height / 2 + int(floor(av_pitch / 2.0) + 1)).copyTo(aux_mat);
-		Mat masked_aux_mat;
-		Mat1b mask(aux_mat.size(), double(0.0));
-		Point cent(aux_mat.size().width / 2, aux_mat.size().height / 2);
-		circle(mask, cent, av_radius, Scalar(1.0), FILLED);
-		aux_mat.copyTo(masked_aux_mat, mask);
-		cropped_reconst_vol.push_back(masked_aux_mat);
-		double min, max;
-		cv::minMaxLoc(masked_aux_mat, &min, &max);
-		if (max > max_val)
-			max_val = max;
-		//normalize(aux_mat, aux_mat, 0, 1, NORM_MINMAX, -1, Mat());
-		//reconst_volume.at(s).copyTo(aux_mat);
-		/*aux_mat *= 255;
-		aux_mat.convertTo(aux_mat, CV_8U);
-		stringstream str;
-		str << "Rec_plane_" << s + 1 << ".png";
-		imwrite(str.str(), aux_mat);*/
-	}
+//	vector<Mat> cropped_reconst_vol;
+//	double max_val = 0;
+//	for (int s = 0; s < d; s++) {
+//		Mat aux_mat;
+//		reconst_volume.at(s).colRange(img.size().width / 2 - int(floor(av_pitch / 2.0)), img.size().width / 2 + int(floor(av_pitch / 2.0) + 1)).rowRange(img.size().height / 2 - int(floor(av_pitch / 2.0)), img.size().height / 2 + int(floor(av_pitch / 2.0) + 1)).copyTo(aux_mat);
+//		Mat masked_aux_mat;
+//		Mat1b mask(aux_mat.size(), double(0.0));
+//		Point cent(aux_mat.size().width / 2, aux_mat.size().height / 2);
+//		circle(mask, cent, av_radius, Scalar(1.0), FILLED);
+//		aux_mat.copyTo(masked_aux_mat, mask);
+//		cropped_reconst_vol.push_back(masked_aux_mat);
+//		double min, max;
+//		cv::minMaxLoc(masked_aux_mat, &min, &max);
+//		if (max > max_val)
+//			max_val = max;
+//		//normalize(aux_mat, aux_mat, 0, 1, NORM_MINMAX, -1, Mat());
+//		//reconst_volume.at(s).copyTo(aux_mat);
+//		/*aux_mat *= 255;
+//		aux_mat.convertTo(aux_mat, CV_8U);
+//		stringstream str;
+//		str << "Rec_plane_" << s + 1 << ".png";
+//		imwrite(str.str(), aux_mat);*/
+//	}
 	//for (int s = 0; s < d; s++) {
 	//	Mat aux_mat;
 	//	aux_mat = cropped_reconst_vol.at(s) / max_val;
@@ -585,5 +585,5 @@ int main(int argc, char** argv)
 	//	imwrite(str.str(), aux_mat);
 	//}
 
-	imwrite(filename_reconstructed_image, cropped_reconst_vol);
+	imwrite(filename_reconstructed_image, reconst_volume);
 }
