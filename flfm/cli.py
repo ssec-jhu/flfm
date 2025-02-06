@@ -5,9 +5,9 @@ from pathlib import Path
 
 import fire
 
-import flfm.io as flfm_io
-import flfm.reconstruct as flfm_reconstruct
-import flfm.util as flfm_utils
+import flfm.io
+import flfm.restoration
+import flfm.util
 
 
 def main(
@@ -28,18 +28,18 @@ def main(
         num_iters: Number of iterations to run, default is 10.
         lens_center: Center of the lens to apply the circular mask to
     """
-    img = flfm_io.open_tiff(img)
-    psf = flfm_io.open_tiff(psf)
+    img = flfm.io.open(img)
+    psf = flfm.io.open(psf)
     lens_center = lens_center or (img.shape[-2] // 2, img.shape[-1] // 2)
 
-    reconstructed = flfm_reconstruct.reconstruct(img, psf, num_iter=num_iters)
-    cropped = flfm_utils.crop_and_apply_circle_mask(
+    reconstructed = flfm.restoration.richardson_lucy(img, psf, num_iter=num_iters)
+    cropped = flfm.util.crop_and_apply_circle_mask(
         reconstructed,
         lens_center,
         lens_radius,
     )
 
-    flfm_io.save_tiff(out, cropped)
+    flfm.io.save(out, cropped)
 
 
 if __name__ == "__main__":

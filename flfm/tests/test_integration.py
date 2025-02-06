@@ -3,10 +3,10 @@ import io
 import numpy as np
 from PIL import Image
 
-import flfm.cli as flfm_cli
-import flfm.io as flfm_io
-import flfm.reconstruct as flfm_reconstruct
-import flfm.util as flfm_utils
+import flfm.cli
+import flfm.io
+import flfm.restoration
+import flfm.util
 
 
 def arr_to_stream(arr: np.ndarray) -> io.BytesIO:
@@ -39,23 +39,23 @@ def test_simple_integration() -> None:
     sim_psf_stream = arr_to_stream(sim_psf)
 
     # read them back in from the byte stream
-    img = flfm_io.open_tiff(rand_img_stream)
-    psf = flfm_io.open_tiff(sim_psf_stream)
+    img = flfm.io.open(rand_img_stream)
+    psf = flfm.io.open(sim_psf_stream)
 
     # reconstruct the image
-    reconstructed = flfm_reconstruct.reconstruct(img, psf, num_iter=1)
+    reconstructed = flfm.restoration.richardson_lucy(img, psf, num_iter=1)
 
     # save the reconstructed image to a byte stream
     out_stream = io.BytesIO()
-    flfm_io.save_tiff(out_stream, reconstructed)
+    flfm.io.save(out_stream, reconstructed, format="TIFF")
     out_stream.seek(0)
 
     # read the reconstructed image back in from the byte stream
-    out_img = flfm_io.open_tiff(out_stream)
+    out_img = flfm.io.open(out_stream)
 
     # make a circle mask
-    mask = flfm_utils.make_circle_mask(r)
-    out = flfm_utils.crop_and_apply_circle_mask(sim_psf, (h // 2, w // 2), r)
+    mask = flfm.util.make_circle_mask(r)
+    out = flfm.util.crop_and_apply_circle_mask(sim_psf, (h // 2, w // 2), r)
 
     expected_area = np.ceil(np.pi * r**2)
     assert img.shape == (1, h, w)
@@ -67,7 +67,7 @@ def test_simple_integration() -> None:
     assert out.shape == (n, 2 * r, 2 * r)
 
 
-def test_cli() -> None:
+def test_cli(tmp_path) -> None:
     """Test the command line interface."""
     r = 5
     n, h, w = 4, 32, 32
@@ -79,9 +79,9 @@ def test_cli() -> None:
     sim_psf = np.ones([n, h, w], dtype=np.float32) / (w * h)
     sim_psf_stream = arr_to_stream(sim_psf)
 
-    out_stream = io.BytesIO()
+    out_stream = tmp_path / "test_file.tiff"
 
-    flfm_cli.main(
+    flfm.cli.main(
         img=rand_img_stream,
         psf=sim_psf_stream,
         out=out_stream,
@@ -89,6 +89,6 @@ def test_cli() -> None:
         num_iters=1,
     )
 
-    out_img = flfm_io.open_tiff(out_stream)
+    out_img = flfm.io.open(out_stream)
 
     assert out_img.shape == (n, 2 * r, 2 * r)

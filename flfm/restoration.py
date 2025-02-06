@@ -17,12 +17,17 @@ def compute_step_f(
     return data * jnp.fft.fftshift(jnp.fft.irfft2(jnp.fft.rfft2(img_err) * PSFt_fft), axes=(-2, -1))  # [k, n, n]
 
 
-def reconstruct(
+def richardson_lucy(
     image: jnp.ndarray,  # [1, n, n]
     psf: jnp.ndarray,  # [k, n, n]
     num_iter: int = 10,
+    **kwargs,
 ) -> jnp.ndarray:
-    """Reconstruct the image using the deconvolution method."""
+    """Reconstruct the image using the Richardson-Lucy deconvolution method."""
+
+    if "clip" in kwargs or "filter_epsilon" in kwargs:
+        raise NotImplementedError
+
     # We may want to make this something the use changes
     data = jnp.ones_like(psf) * 0.5  # [k, n, n]
 
