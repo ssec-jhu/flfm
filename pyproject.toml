@@ -51,6 +51,8 @@ include = ["flfm*"]
 exclude = ["*.tests*"]
 
 [tool.setuptools_scm]
+fallback_version = "0.0.1"
+version_file = "flfm/_version.py"
 write_to = "flfm/_version.py"  # Replace flfm with actual name (it's just a template).
 
 [tool.bandit]

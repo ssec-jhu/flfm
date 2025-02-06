@@ -1,0 +1,30 @@
+# Dockerfile.python
+
+FROM python:3.11
+
+RUN ln -sf /bin/bash /bin/sh
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /
+COPY flfm/ /app/flfm
+COPY data/ /data
+COPY pyproject.toml /app/pyproject.toml
+
+COPY requirements/build.txt /build.txt
+COPY requirements/prd.txt /prd.txt
+
+RUN pip3 install -r prd.txt
+RUN pip3 install -r build.txt
+
+# Some extras.
+RUN pip3 install jax['cuda12']
+RUN pip3 install jupyter
+RUN pip3 install matplotlib
+
+# Build.
+RUN pip3 install -e app/
+
+# Expose a port to use with a jupyter notebook whilst we're here.
+# The port number is relatively arbitrary, here we use 8080.
+EXPOSE 8080
