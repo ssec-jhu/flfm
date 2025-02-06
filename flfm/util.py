@@ -23,13 +23,13 @@ def make_circle_mask(radius: int) -> jnp.ndarray:
 
 
 def crop_and_apply_circle_mask(
-    O: jnp.ndarray,  # [k, n, n] # noqa: E741
+    data: jnp.ndarray,  # [k, n, n]
     center: tuple[int, int],
     radius: int,
 ) -> jnp.ndarray:
     """Crop the image and apply a circular mask."""
     circle_mask = jnp.expand_dims(make_circle_mask(radius), axis=0)  # [1, 2 * radius, 2 * radius]
-    sub_O = O[
+    sub_O = data[
         :, center[0] - radius : center[0] + radius, center[1] - radius : center[1] + radius
     ]  # [k, 2 * radius, 2 * radius]
     return sub_O * circle_mask  # [k, 2 * radius, 2 * radius]
