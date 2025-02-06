@@ -1,0 +1,44 @@
+# Deployment file for SSEC GPU cluster.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python
+  namespace: jnoss
+  labels:
+    app: python
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python
+  template:
+    metadata:
+      labels:
+        app: python
+    spec:
+      containers:
+      - name: python
+        securityContext:
+          privileged: true
+        image: containers.repo.sciserver.org/jnoss/python:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+        command:
+          - sleep
+          - "999999999"
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+        volumeMounts:
+        - mountPath: /sciserver/vc_crypt/ssec/jnoss
+          name: sciserver-mount
+          readOnly: false
+      nodeSelector:
+        nvidia.com/gpu.product: NVIDIA-A100-SXM4-80GB
+      volumes:
+        - name: sciserver-mount
+          nfs:
+            path: /srv/vc_crypt/ssec/jnoss
+            server: sciserver-fs1
