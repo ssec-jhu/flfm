@@ -10,7 +10,7 @@ import flfm.restoration
 import flfm.util
 
 
-def main(
+def run(
     img: Path | str | io.BytesIO,
     psf: Path | str | io.BytesIO,
     out: Path | str | io.BytesIO,
@@ -42,5 +42,10 @@ def main(
     flfm.io.save(out, cropped)
 
 
+def export(out_path: str):
+    """Export the reconstruction function to a TensorFlow SavedModel."""
+    flfm.restoration.export_to_tf(out_path)
+
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire({"run": run, "export": export})

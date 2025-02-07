@@ -13,11 +13,23 @@ def compute_step_f(
 ) -> jnp.ndarray:
     """Single step of the multiplicative Richardson-Lucy deconvolution algorithm."""
     denom = jnp.fft.irfft2(PSF_fft * jnp.fft.rfft2(data)).sum(axis=0, keepdims=True)  # [1, n, n]
-    img_err = image / denom
+    img_err = image / denom  # [1, n, n]
     return data * jnp.fft.fftshift(jnp.fft.irfft2(jnp.fft.rfft2(img_err) * PSFt_fft), axes=(-2, -1))  # [k, n, n]
 
 
-def richardson_lucy(
+def _compute_step_java(
+    O: jnp.ndarray,  # [k, n, n] # noqa: E741
+    I: jnp.ndarray,  # [1, n, n] # noqa: E741
+    PSF: jnp.ndarray,  # [k, n, n]
+) -> jnp.ndarray:
+    PSFt_fft = jnp.fft.rfft2(jnp.flip(PSF, axis=(-2, -1)))  # [k, n, n/2+1]
+    PSF_fft = jnp.fft.rfft2(PSF)  # [k, n, n/2+1]
+    denom = jnp.fft.irfft2(PSF_fft * jnp.fft.rfft2(O)).sum(axis=0, keepdims=True)  # [1, n, n]
+    img_err = I / denom
+    return O * jnp.fft.fftshift(jnp.fft.irfft2(jnp.fft.rfft2(img_err) * PSFt_fft), axes=(-2, -1))  # [k, n, n]
+
+
+def reconstruct(
     image: jnp.ndarray,  # [1, n, n]
     psf: jnp.ndarray,  # [k, n, n]
     num_iter: int = 10,
@@ -38,3 +50,27 @@ def richardson_lucy(
         data = compute_step_f(data, image, psf_fft, psft_fft).block_until_ready()
 
     return data
+
+
+def export_to_tf(out_path: str):
+    import tensorflow as tf
+    from jax.experimental import jax2tf
+
+    exported_f = tf.Module()
+    exported_f.f = tf.function(
+        jax2tf.convert(_compute_step_java, with_gradient=False, native_serialization_platforms=("cuda",)),
+        autograph=False,
+        input_signature=[
+            tf.TensorSpec(shape=[41, 2048, 2048], dtype=tf.float32, name="data"),  # [k, n, n]
+            tf.TensorSpec(shape=[1, 2048, 2048], dtype=tf.float32, name="image"),  # [1, n, n]
+            tf.TensorSpec(shape=[41, 2048, 2048], dtype=tf.float32, name="psf"),  # [k, n, n]
+        ],
+    )
+
+    exported_f.f(
+        tf.ones((41, 2048, 2048), dtype=tf.float32, name="data"),
+        tf.ones((1, 2048, 2048), dtype=tf.float32, name="image"),
+        tf.ones((41, 2048, 2048), dtype=tf.float32, name="psf"),
+    )
+
+    tf.saved_model.save(exported_f, out_path)
