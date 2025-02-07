@@ -64,8 +64,6 @@ lint.select = ["ALL"]
 lint.ignore = [
     "ANN002",  # https://docs.astral.sh/ruff/rules/missing-type-args/
     "ANN003",  # https://docs.astral.sh/ruff/rules/missing-type-kwargs/
-    "ANN101",  # https://docs.astral.sh/ruff/rules/missing-type-self/
-    "ANN102",  # https://docs.astral.sh/ruff/rules/missing-type-cls/
     "ANN401",  # https://docs.astral.sh/ruff/rules/any-type/
     "PLR0913",  # https://docs.astral.sh/ruff/rules/too-many-arguments/
     "EM101",  # https://docs.astral.sh/ruff/rules/raw-string-in-exception/
