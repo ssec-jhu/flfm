@@ -1,12 +1,14 @@
 """Image/data io operations."""
 
+from pathlib import Path
+
 import jax.numpy as jnp
 import numpy as np
 from PIL import Image
 
 
-def open_tiff(filename: str) -> jnp.ndarray:
-    """Open a tiff file and return it as a numpy array."""
+def open(filename: str | Path) -> jnp.ndarray:
+    """Open a file and return it as a numpy array."""
     img = Image.open(filename)
     frames = []
     for i in range(img.n_frames):
@@ -16,10 +18,11 @@ def open_tiff(filename: str) -> jnp.ndarray:
     return jnp.stack(frames, axis=0)  # [n_frames, h, w]
 
 
-def save_tiff(
-    filename: str,
+def save(
+    filename: str | Path,
     data: jnp.ndarray,  # [n_frames, h, w]
+    format=None,
 ) -> None:
-    """Save a numpy array as a tiff file."""
+    """Save a numpy array to file. The file format is determined by the filename suffix when present."""
     img = Image.fromarray(np.array(data[0]))
-    img.save(filename, format="TIFF", save_all=True, append_images=[Image.fromarray(np.array(d)) for d in data[1:]])
+    img.save(filename, format=format, save_all=True, append_images=[Image.fromarray(np.array(d)) for d in data[1:]])
