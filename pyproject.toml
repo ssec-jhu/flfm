@@ -10,7 +10,10 @@ license = {file = "LICENSE"}
 
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi[all]",
+    "fire",
+    "jax",
+    "numpy",
+    "pillow",
 ]
 
 [project.optional-dependencies]
