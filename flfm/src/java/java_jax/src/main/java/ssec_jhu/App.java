@@ -37,6 +37,9 @@ import java.nio.Buffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.time.Duration;
+import java.time.Instant;
+
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -147,11 +150,14 @@ public class App
             inputs.put("image", imageTensor);
             inputs.put("psf", psfTensor);
 
+            System.out.println("Running model...");
+            Instant start = Instant.now();
             for (int i = 0; i < 10; i++){
-                System.out.println("Running model iter " + i);
                 Result result = model.function("serving_default").call(inputs);
                 inputs.replace("args_tf_0", result.get("output_0").get());
             }
+            Instant end = Instant.now();
+            System.out.println("Model run in " + (Duration.between(start, end).toMillis()/1000f) + "seconds");
         }
         System.out.println("Done.");
     }

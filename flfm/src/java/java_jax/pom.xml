@@ -12,24 +12,17 @@
    <maven.compiler.target>16</maven.compiler.target>
  </properties>
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/org.tensorflow/tensorflow-core-api -->
-    <!-- <dependency>
-        <groupId>org.tensorflow</groupId>
-        <artifactId>tensorflow-core-api</artifactId>
-        <version>1.0.0</version>
-    </dependency> -->
-    <!-- https://mvnrepository.com/artifact/org.tensorflow/tensorflow-core-platform -->
     <dependency>
         <groupId>org.tensorflow</groupId>
         <artifactId>tensorflow-core-api</artifactId>
         <version>1.0.0</version>
     </dependency>
-    <!-- <dependency>
+    <dependency>
       <groupId>org.tensorflow</groupId>
       <artifactId>tensorflow-core-native</artifactId>
       <version>1.0.0</version>
       <classifier>linux-x86_64</classifier>
-    </dependency> -->
+    </dependency>
     <dependency>
       <groupId>org.tensorflow</groupId>
       <artifactId>tensorflow-core-native</artifactId>
