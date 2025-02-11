@@ -81,7 +81,7 @@ def test_cli(tmp_path) -> None:
 
     out_stream = tmp_path / "test_file.tiff"
 
-    flfm.cli.main(
+    flfm.cli.run(
         img=rand_img_stream,
         psf=sim_psf_stream,
         out=out_stream,
