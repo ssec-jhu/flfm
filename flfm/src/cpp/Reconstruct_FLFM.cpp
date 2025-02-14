@@ -252,13 +252,17 @@ int main()
 
         temp1.upload(PSF[s]);
         temp1.convertTo(temp1_f, CV_32FC1);
-        cuda::divide(temp1_f, N * N, temp1_f);
+
+        // Normalize.
+        cv::Scalar total_flux = cuda::sum(temp1_f);
+        cuda::divide(temp1_f, total_flux, temp1_f);
 
         // Rotate PSF by 180
         cv::rotate(PSF[s], PSF_r_temp, 1); 
         temp2.upload(PSF_r_temp);
         temp2.convertTo(temp2_f, CV_32FC1);
-        cuda::divide(temp2_f, N * N, temp2_f);
+        // Normalize.
+        cuda::divide(temp2_f, total_flux, temp2_f);
 
     
         cuda::GpuMat PSF_FT_temp(N, N / 2 + 1, CV_32FC2), PSF_split_temp[2], PSF_r_FT_temp(N, N / 2 + 1, CV_32FC2), PSF_r_split_temp[2];
