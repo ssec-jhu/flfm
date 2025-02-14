@@ -94,9 +94,7 @@ vector<Mat> RL_3Ddeconv(const vector<cuda::GpuMat> H_real, const vector<cuda::Gp
             fft_multiply.release();
             
         }
-        
-        cuda::divide(proj_im, N*N, proj_im);
-        
+
         cuda::divide(img, proj_im, im_error);
 
         //Mask where proj_im==0
@@ -134,8 +132,6 @@ vector<Mat> RL_3Ddeconv(const vector<cuda::GpuMat> H_real, const vector<cuda::Gp
             // Inverse Fourier transform to complete the convolution
             
             cufftExecC2R(reverse, (cufftComplex*)fft_multiply2.data, (cufftReal*)rec_vol_err[s].data);
-
-            cuda::divide(rec_vol_err[s], N * N, rec_vol_err[s]);
 
             // FFTshift on rec_vol_error
             
