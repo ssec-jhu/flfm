@@ -32,7 +32,7 @@ def run(
     psf = flfm.io.open(psf)
     lens_center = lens_center or (img.shape[-2] // 2, img.shape[-1] // 2)
 
-    reconstructed = flfm.restoration.richardson_lucy(img, psf, num_iter=num_iters)
+    reconstructed = flfm.restoration.reconstruct(img, psf, num_iter=num_iters)
     cropped = flfm.util.crop_and_apply_circle_mask(
         reconstructed,
         lens_center,

@@ -43,7 +43,7 @@ def test_simple_integration() -> None:
     psf = flfm.io.open(sim_psf_stream)
 
     # reconstruct the image
-    reconstructed = flfm.restoration.richardson_lucy(img, psf, num_iter=1)
+    reconstructed = flfm.restoration.reconstruct(img, psf, num_iter=1)
 
     # save the reconstructed image to a byte stream
     out_stream = io.BytesIO()
