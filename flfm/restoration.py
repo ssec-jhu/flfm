@@ -1,5 +1,7 @@
 """Deconvolution for FLFM observation reconstruction."""
 
+import functools
+
 import jax
 import jax.numpy as jnp
 
@@ -17,16 +19,20 @@ def compute_step_f(
     return data * jnp.fft.fftshift(jnp.fft.irfft2(jnp.fft.rfft2(img_err) * PSFt_fft), axes=(-2, -1))  # [k, n, n]
 
 
+@functools.partial(jax.jit, static_argnames=("n_iters",))
 def _compute_step_java(
-    O: jnp.ndarray,  # [k, n, n] # noqa: E741
-    I: jnp.ndarray,  # [1, n, n] # noqa: E741
-    PSF: jnp.ndarray,  # [k, n, n]
+    data: jnp.ndarray,  # [k, n, n] # noqa: E741
+    image: jnp.ndarray,  # [1, n, n] # noqa: E741
+    psf: jnp.ndarray,  # [k, n, n]
+    n_iters: int,
 ) -> jnp.ndarray:
-    PSFt_fft = jnp.fft.rfft2(jnp.flip(PSF, axis=(-2, -1)))  # [k, n, n/2+1]
-    PSF_fft = jnp.fft.rfft2(PSF)  # [k, n, n/2+1]
-    denom = jnp.fft.irfft2(PSF_fft * jnp.fft.rfft2(O)).sum(axis=0, keepdims=True)  # [1, n, n]
-    img_err = I / denom
-    return O * jnp.fft.fftshift(jnp.fft.irfft2(jnp.fft.rfft2(img_err) * PSFt_fft), axes=(-2, -1))  # [k, n, n]
+    psft_fft = jnp.fft.rfft2(jnp.flip(psf, axis=(-2, -1)))  # [k, n, n/2+1]
+    psf_fft = jnp.fft.rfft2(psf)  # [k, n, n/2+1]
+
+    for _ in range(n_iters):
+        data = compute_step_f(data, image, psf_fft, psft_fft)
+
+    return data
 
 
 def reconstruct(
@@ -58,7 +64,11 @@ def export_to_tf(out_path: str):
 
     exported_f = tf.Module()
     exported_f.f = tf.function(
-        jax2tf.convert(_compute_step_java, with_gradient=False, native_serialization_platforms=("cuda",)),
+        jax2tf.convert(
+            functools.partial(_compute_step_java, n_iters=10),
+            with_gradient=False,
+            native_serialization_platforms=("cuda",),
+        ),
         autograph=False,
         input_signature=[
             tf.TensorSpec(shape=[41, 2048, 2048], dtype=tf.float32, name="data"),  # [k, n, n]
