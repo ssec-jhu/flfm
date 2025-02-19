@@ -20,21 +20,29 @@ def compute_step_f(
 def richardson_lucy(
     image: jnp.ndarray,  # [1, n, n]
     psf: jnp.ndarray,  # [k, n, n]
+    psf_fft: jnp.ndarray = None,  # [k, n, n]
+    psft_fft: jnp.ndarray = None,  # [k, n, n]
+    initial_guess: jnp.ndarray = None,  # [k, n, n]
     num_iter: int = 10,
-    **kwargs,
+    clip: bool = None,
+    filter_epsilon: float = None,
+    wait: bool = True,
 ) -> jnp.ndarray:
     """Reconstruct the image using the Richardson-Lucy deconvolution method."""
 
-    if "clip" in kwargs or "filter_epsilon" in kwargs:
+    if clip is not None or filter_epsilon is not None:
         raise NotImplementedError
 
     # We may want to make this something the use changes
-    data = jnp.ones_like(psf) * 0.5  # [k, n, n]
+    if initial_guess is None:
+        initial_guess = jnp.ones_like(psf) * 0.5  # [k, n, n]
 
-    psf_fft = jnp.fft.rfft2(psf, axes=(-2, -1))  # [k, n, n/2+1]
-    psft_fft = jnp.fft.rfft2(jnp.flip(psf, axis=(-2, -1)))  # [k, n, n/2+1]
+    if psf_fft is None:
+        psf_fft = jnp.fft.rfft2(psf, axes=(-2, -1))  # [k, n, n/2+1]
+    if psft_fft is None:
+        psft_fft = jnp.fft.rfft2(jnp.flip(psf, axis=(-2, -1)))  # [k, n, n/2+1]
 
     for _ in range(num_iter):
-        data = compute_step_f(data, image, psf_fft, psft_fft).block_until_ready()
+        initial_guess = compute_step_f(initial_guess, image, psf_fft, psft_fft)
 
-    return data
+    return initial_guess.block_until_ready() if wait else initial_guess
