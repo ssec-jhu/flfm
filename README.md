@@ -9,26 +9,14 @@
 
 ![SSEC-JHU Logo](docs/_static/SSEC_logo_horiz_blue_1152x263.png)
 
-Base repo template to be used by all others.
+# Fourier Light Field Microscopy (FLFM)
 
-Things to do when using this template:
-
- * Run ```python project_setup.py```
- * Uncomment above DOI in README.md and correct ``<insert_ID_number>``.
- * Correct "description" field in .zenodo.json to reflect description of child repo.
- * Correct the ``CI Status`` badge with the correct token in the URL.
- * Import package into https://readthedocs.org/.
-
-What's included in this template:
-
- * Licence file
- * Code of Conduct
- * Build & Setup, inc. ``pip`` dependency requirements.
- * Dependabot GitHub action
- * CI for GitHub actions: lint, pytest, build & publish docker image to GitHub Packages.
- * Dockerfile.
- * Pytest example(s).
- * Githooks.
+Fourier Light Field Microscopy (FLFM) is a technique for scan-free volumetric imaging.
+FLFM utilizes an array of lenses to simultaneously acquire several images from different viewpoints. These images are
+then post-processed to generate a 3D volume using a Richardson-Lucy-based deconvolution algorithm. This enables
+volumetric imaging at the exposure time of the camera, a speed unmatched by conventional volumetric scanning.
+This fast imaging is particularly useful for samples with transient signals, where the time spent scanning will miss
+relevant information. For example, FLFM is ideal for capturing the transient activity of point-like neurons in 3D.
 
 # Installation, Build, & Run instructions
 
@@ -52,36 +40,63 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
 
 ### Build:
 
-  #### with Docker:
+  #### with Python ecosystem:
+  * ``cd`` into repo dir.
+  * ``conda activate <environment_name>``
+  * Build and install package in <environment_name> conda env: ``pip install .``
+  * Do the same but in dev/editable mode (changes to repo will be reflected in env installation upon python kernel restart)
+  >[!NOTE]
+  > This is the preferred installation method for dev work. ``pip install -e .``.
+  
+  >[!NOTE]
+  > If you didn't install dependencies from ``requirements/dev.txt``, you can install a looser constrained set of deps
+  > using: ``pip install -e .[dev]``.
+  
+  >[!NOTE]
+  > For Nvidia GPU utilization install ``jax["cuda12"]``, e.g., ``pip install jax["cuda12"]``.
+  > See the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation) for further details
+  > on supported hardware accelerator architectures and operating systems.
+
+  #### with Docker (C++ version only):
   * Download & install Docker - see [Docker install docs](https://docs.docker.com/get-docker/).
   * ``cd`` into repo dir.
     * OpneCV with CUDA support: ``docker buildx build -f docker/Dockerfile.opencv --platform linux/amd64 . -t opencv_image`` 
     * flfm.exe: ``docker buildx build -f docker/Dockerfile.flfm --platform linux/amd64 . -t flfm``
   * Run container interactively: ``docker run --platform linux/amd64 -it flfm  sh``
 
-  #### with Python ecosystem:
-  * ``cd`` into repo dir.
-  * ``conda activate <environment_name>``
-  * Build and install package in <environment_name> conda env: ``pip install .``
-  * Do the same but in dev/editable mode (changes to repo will be reflected in env installation upon python kernel restart)
-    _NOTE: This is the preferred installation method for dev work._
-    ``pip install -e .``.
-    _NOTE: If you didn't install dependencies from ``requirements/dev.txt``, you can install
-    a looser constrained set of deps using: ``pip install -e .[dev]``._
+### Usage
 
-### Run
+Follow the above [Build with Python ecosystem instructions](#with-python-ecosystem).
 
-  #### with Docker:
-  * Follow the above [Build with Docker instructions](#with-docker).
-  * Run container from image: ``docker run -d -p 8000:8000 <image_name>``. _NOTE: ``-p 8000:8000`` is specific to the example application using port 8000._
-  * Alternatively, images can be pulled from ``ghcr.io/ssec-jhu/`` e.g., ``docker pull ghcr.io/git@github.com:ssec-jhu/flfm:pr-1``.
+Using the command line interface (i.e., from a terminal prompt):
+```term
+python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)"
+```
 
-  #### with Python ecosystem:
-  * Follow the above [Build with Python ecosystem instructions](#with-python-ecosystem).
-  * Run ``uvicorn flfm.app.main:app --host 0.0.0.0 --port", "8000``. _NOTE: This is just an example and is obviously application dependent._
+Within a Python session or Jupyter notebook:
+```python
+import jax.numpy as jnp
 
-### Usage:
-To be completed by child repo.
+import flfm.io
+import flfm.restoration
+import flfm.util
+
+# Read in images.
+image = flfm.io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/light_field_image.tif")
+psf = flfm.io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/measured_psf.tif")
+
+# Normalize PSF.
+psf_norm = psf / jnp.sum(psf, axis=(1,2), keepdims=True)
+
+# Compute reconstruction.
+reconstruction = flfm.restoration.richardson_lucy(image, psf_norm)
+
+# Clip image to view only central lens perspective.
+cropped_reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, center=(1000, 980), radius=230)
+
+# Save cropped reconstruction to file.
+flfm.io.save("reconstructed_image.tif", cropped_reconstruction)
+```
 
 
 # Testing
