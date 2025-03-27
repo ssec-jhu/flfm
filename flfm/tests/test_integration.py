@@ -28,7 +28,7 @@ def arr_to_stream(arr: np.ndarray) -> io.BytesIO:
     return stream
 
 
-def test_simple_integration(backend: str) -> None:
+def test_simple_integration() -> None:
     """Test the integration of the package."""
     r = 5
     n, h, w = 4, 32, 32
