@@ -2,10 +2,13 @@
 
 import io
 from pathlib import Path
+from typing import Literal
 
 import fire
 
 import flfm.io
+import flfm.pytorch_io
+import flfm.pytorch_restoration
 import flfm.restoration
 import flfm.util
 
@@ -17,6 +20,7 @@ def main(
     lens_radius: int,
     num_iters: int = 10,
     lens_center: tuple[int, int] | None = None,
+    backend: Literal["jax", "torch"] = "torch",
 ) -> None:
     """Run the command line interface.
 
@@ -27,12 +31,24 @@ def main(
         lens_radius: Radius of the lens mask to apply to the output
         num_iters: Number of iterations to run, default is 10.
         lens_center: Center of the lens to apply the circular mask to
+        backend: Whether to use JAX or Torch. Default is "torch".
     """
-    img = flfm.io.open(img)
-    psf = flfm.io.open(psf)
-    lens_center = lens_center or (img.shape[-2] // 2, img.shape[-1] // 2)
+    match backend:
+        case "torch":
+            backend_restoration = flfm.pytorch_restoration
+            backend_io = flfm.pytorch_io
+        case "jax":
+            backend_restoration = flfm.restoration
+            backend_io = flfm.io
+        case _:
+            raise ValueError(f"{backend} is not supported.")
 
-    reconstructed = flfm.restoration.richardson_lucy(img, psf, num_iter=num_iters)
+    img = backend_io.open(img)
+    psf = backend_io.open(psf)
+
+    reconstructed = backend_restoration.richardson_lucy(img, psf, num_iter=num_iters)
+
+    lens_center = lens_center or (img.shape[-2] // 2, img.shape[-1] // 2)
     cropped = flfm.util.crop_and_apply_circle_mask(
         reconstructed,
         lens_center,
