@@ -75,27 +75,38 @@ python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif re
 
 Within a Python session or Jupyter notebook:
 ```python
-import jax.numpy as jnp
+backend = "torch"  # "jax"
 
-import flfm.io
-import flfm.restoration
+from functools import partial
+
+if backend == "torch":
+    import torch
+    psf_sum = partial(torch.sum, dim=(1, 2), keepdim=True)
+    import flfm.pytorch_io as flfm_io
+    import flfm.pytorch_restoration as flfm_restoration
+else:
+    import jax.numpy as jnp
+    psf_sum = partial(jnp.sum, axis=(1, 2), keepdims=True)
+    import flfm.io as flfm_io
+    import flfm.restoration as flfm_restoration
+
 import flfm.util
 
 # Read in images.
-image = flfm.io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/light_field_image.tif")
-psf = flfm.io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/measured_psf.tif")
+image = flfm_io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/light_field_image.tif")
+psf = flfm_io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/measured_psf.tif")
 
 # Normalize PSF.
-psf_norm = psf / jnp.sum(psf, axis=(1,2), keepdims=True)
+psf_norm = psf / psf_sum(psf)
 
 # Compute reconstruction.
-reconstruction = flfm.restoration.richardson_lucy(image, psf_norm)
+reconstruction = flfm_restoration.richardson_lucy(image, psf_norm)
 
 # Clip image to view only central lens perspective.
 cropped_reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, center=(1000, 980), radius=230)
 
 # Save cropped reconstruction to file.
-flfm.io.save("reconstructed_image.tif", cropped_reconstruction)
+flfm_io.save("reconstructed_image.tif", cropped_reconstruction)
 ```
 
 
