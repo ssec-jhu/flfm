@@ -53,9 +53,12 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
   > using: ``pip install -e .[dev]``.
   
   >[!NOTE]
-  > For Nvidia GPU utilization install ``jax["cuda12"]``, e.g., ``pip install jax["cuda12"]``.
-  > See the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation) for further details
-  > on supported hardware accelerator architectures and operating systems.
+  > For GPU acceleration either PyTorch or JAX can be re-installed with their accelerator options.
+  > For PyTorch see the [PyTorch installation docs](https://pytorch.org/get-started/locally/).
+  > E.g., ``pip install --force torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126``.
+  > For JAX see the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation).
+  > E.g., ``pip install --force jax["cuda12"]``. Since both are installed via ``requirements/prd.txt``, ``--force`` must
+  > be used to re-install the accelerator versions.
 
   #### with Docker (C++ version only):
   * Download & install Docker - see [Docker install docs](https://docs.docker.com/get-docker/).
@@ -70,7 +73,7 @@ Follow the above [Build with Python ecosystem instructions](#with-python-ecosyst
 
 Using the command line interface (i.e., from a terminal prompt):
 ```term
-python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)"
+python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 ```
 
 Within a Python session or Jupyter notebook:
