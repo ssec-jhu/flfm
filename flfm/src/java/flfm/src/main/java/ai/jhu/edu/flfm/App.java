@@ -41,15 +41,19 @@ public class App {
         File tiffFile = new File(fName);
 
         // Extract individual pages as BufferedImages
-        List<?> imagePages = Imaging.getAllBufferedImages(tiffFile);
+        List<BufferedImage> imagePages = Imaging.getAllBufferedImages(tiffFile);
 
-        for (Object page : imagePages) {
+        for (BufferedImage page : imagePages) {
             // Convert each page to NDArray
-            Image image = ImageFactory.getInstance().fromImage((BufferedImage) page);
+            Image image = ImageFactory.getInstance().fromImage(page);
             NDArray ndArray = image.toNDArray(manager);
+            // page.getRGB(x, y) & 0xFFFF; seems to work for 16 bit
+            // Do what this does
+            // https://github.com/imagej/ImageJ/blob/2bfe4ff51a948295cc0a36619a944cf3ee6e7bbc/ij/io/ImageReader.java#L103
 
             // Do something with the NDArray
             System.out.println(ndArray.getShape());
+            System.out.println(ndArray.get("1050,952,:"));
         }
     }
 
@@ -57,10 +61,11 @@ public class App {
 
     public static void main(String[] args) throws Exception, IOException, MalformedModelException, TranslateException  {
         System.out.println("Hello World!");
-        Path imageFile = Paths.get("/home/ryan/repos/flfm/data/yale/light_field_image.tif");
-        Path psfFile = Paths.get("/home/ryan/repos/flfm/data/yale/measured_psf.tif");
+        Path imageFile = Paths.get("/home/ryanhausen/repos/flfm/data/yale/light_field_image.tif");
+        Path psfFile = Paths.get("/home/ryanhausen/repos/flfm/data/yale/measured_psf.tif");
 
-        openArray("/home/ryan/repos/flfm/data/yale/light_field_image.tif");
+        openArray("/home/ryanhausen/repos/flfm/data/yale/light_field_image.tif");
+        openArray("/home/ryanhausen/repos/flfm/data/yale/measured_psf.tif");
 
         // Open image using Input stream
         InputStream is = new FileInputStream(imageFile.toFile());
