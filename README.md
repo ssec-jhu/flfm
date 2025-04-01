@@ -55,10 +55,10 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
   >[!NOTE]
   > For GPU acceleration either PyTorch or JAX can be re-installed with their accelerator options.
   > For PyTorch see the [PyTorch installation docs](https://pytorch.org/get-started/locally/).
-  > E.g., ``pip install --force torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126``.
+  > E.g., ``pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126``.
   > For JAX see the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation).
-  > E.g., ``pip install --force jax["cuda12"]``. Since both are installed via ``requirements/prd.txt``, ``--force`` must
-  > be used to re-install the accelerator versions.
+  > E.g., ``pip install --upgrade jax["cuda12"]``. Since both are installed via ``requirements/prd.txt``, ``--upgrade``
+  > must  be used to re-install the accelerator versions.
 
   #### with Docker (C++ version only):
   * Download & install Docker - see [Docker install docs](https://docs.docker.com/get-docker/).
@@ -96,8 +96,8 @@ else:
 import flfm.util
 
 # Read in images.
-image = flfm_io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/light_field_image.tif")
-psf = flfm_io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/measured_psf.tif")
+image = flfm_io.open(flfm.util.find_repo_location()  / "data/yale/light_field_image.tif")
+psf = flfm_io.open(flfm.util.find_repo_location()  / "data/yale/measured_psf.tif")
 
 # Normalize PSF.
 psf_norm = psf / psf_sum(psf)

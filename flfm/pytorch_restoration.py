@@ -24,6 +24,11 @@ def richardson_lucy(
 ) -> torch.Tensor:
     """Reconstruct the image using the Richardson-Lucy deconvolution method."""
 
+    if torch.cuda.is_available():
+        # Move data to GPU.
+        image = image.to("cuda")
+        psf = psf.to("cuda")
+
     if "clip" in kwargs or "filter_epsilon" in kwargs:
         raise NotImplementedError
 
@@ -36,4 +41,4 @@ def richardson_lucy(
     for _ in range(num_iter):
         data = compute_step_f(data, image, psf_fft, psft_fft)
 
-    return data
+    return data.cpu()
