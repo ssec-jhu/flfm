@@ -1,5 +1,5 @@
 fire==0.7.0
-jax==0.5.1
+jax==0.5.3
 numpy==2.2.4
 pillow==11.1.0
 torch==2.6.0
