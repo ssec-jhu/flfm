@@ -28,6 +28,16 @@
     </dependencies>
   </dependencyManagement>
 
+  <repositories>
+      <repository>
+          <id>scijava-repo</id>
+          <name>SciJava Repository</name>
+          <url>https://maven.scijava.org/content/repositories/public</url>
+      </repository>
+      <!-- Other repositories -->
+  </repositories>
+
+
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -62,6 +72,21 @@
         <version>1.0.0-alpha5</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/net.imagej/imagej -->
+    <!-- This is in the scijava repository -->
+    <!-- <dependency>
+        <groupId>net.imagej</groupId>
+        <artifactId>imagej</artifactId>
+        <version>2.16.0</version>
+    </dependency> -->
+
+
+    <!-- https://mvnrepository.com/artifact/net.imagej/ij -->
+    <dependency>
+        <groupId>net.imagej</groupId>
+        <artifactId>ij</artifactId>
+        <version>1.54p</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -106,6 +131,59 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.6.1</version>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.17</version>
+          <executions>
+              <execution>
+                  <id>validate</id>
+                  <phase>validate</phase>
+                  <configuration>
+                      <configLocation>google_checks.xml</configLocation>
+                      <!-- <suppressionsLocation>suppressions.xml
+                      </suppressionsLocation> -->
+                      <encoding>UTF-8</encoding>
+                      <failsOnError>true</failsOnError>
+                      <consoleOutput>true</consoleOutput>
+                      <includeTestSourceDirectory>true
+                      </includeTestSourceDirectory>
+                  </configuration>
+                  <goals>
+                      <goal>check</goal>
+                  </goals>
+              </execution>
+          </executions>
+        </plugin>
+
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>googleformatter-maven-plugin</artifactId>
+        <version>1.7.3</version>
+          <executions>
+            <execution>
+              <id>reformat-sources</id>
+              <configuration>
+                <includeStale>false</includeStale>
+                <style>GOOGLE</style>
+                <formatMain>true</formatMain>
+                <formatTest>true</formatTest>
+                <filterModified>false</filterModified>
+                <skip>false</skip>
+                <fixImports>false</fixImports>
+                <maxLineLength>100</maxLineLength>
+              </configuration>
+              <goals>
+                <goal>format</goal>
+              </goals>
+              <phase>process-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+
+
       </plugins>
     </pluginManagement>
   </build>
