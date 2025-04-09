@@ -40,6 +40,13 @@ docs = [
     "sphinx-automodapi",
     "nbsphinx"
 ]
+app = [
+    "a2wsgi",
+    "dash>=2.15",
+    "dash-bootstrap-components",
+    "fastapi",
+    "uvicorn"
+]
 
 [project.urls]
 homepage = "https://github.com/ssec-jhu/flfm.git"
