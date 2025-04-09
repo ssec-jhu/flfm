@@ -1,10 +1,12 @@
 import importlib
+import logging
 import os
 from pathlib import Path
 
 import numpy as np
 
-from . import __project__  # Keep as relative for templating reasons.
+from flfm import __project__
+from flfm.settings import settings
 
 
 def find_package_location(package=__project__):
@@ -48,3 +50,7 @@ def find_files(directory: str | Path, ext=None):
         if full_path.is_file():
             file_list.append(full_path.absolute())
     return file_list
+
+
+def setup_logging(level=settings.LOG_LEVEL, format=settings.LOG_FORMAT, **kwargs):
+    logging.basicConfig(level=level, format=format, **kwargs)

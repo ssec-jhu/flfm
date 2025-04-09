@@ -9,6 +9,7 @@ from typing import Literal
 import fire
 
 import flfm.util
+from flfm.settings import settings
 
 ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
 BACKEND_SUCCESS = "FLFM {backend} loaded ✅"
@@ -51,7 +52,7 @@ def main(
     lens_radius: int,
     num_iters: int = 10,
     lens_center: tuple[int, int] | None = None,
-    backend: Literal["jax", "torch"] = "torch",
+    backend: Literal["jax", "torch"] = settings.BACKEND,
 ) -> None:
     """Run the command line interface.
 
