@@ -8,7 +8,6 @@ import ai.djl.translate.TranslatorContext;
 public class MyTranslator implements Translator<NDArray[], NDArray> {
     @Override
     public NDArray processOutput(TranslatorContext ctx, NDList list) {
-        System.out.println("Output shape: " + list.get(0).getShape());
         return list.get(0);
     }
 
@@ -16,13 +15,8 @@ public class MyTranslator implements Translator<NDArray[], NDArray> {
     public NDList processInput(TranslatorContext ctx, NDArray[] input) {
         NDArray img = input[0];
         NDArray psf = input[1];
-        System.out.println(img.getShape());
-        System.out.println(psf.getShape());
 
-        return new NDList(
-            img,
-            psf
-        );
+        return new NDList(img, psf);
     }
 }
 
