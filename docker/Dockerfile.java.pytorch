@@ -1,0 +1,14 @@
+# Mutle-stage build for Java with PyTorch support
+# Base image with Maven and JDK 8
+
+FROM maven:3.9.9-eclipse-temurin-24-alpine
+WORKDIR /
+COPY flfm/src/java/pytorch/flfm/ /flfm
+
+RUN mvn install -f /flfm
+
+
+
+
+
+# FROM ubuntu/jre:21-24.04_stable
