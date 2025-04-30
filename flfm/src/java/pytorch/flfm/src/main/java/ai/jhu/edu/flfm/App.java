@@ -10,7 +10,11 @@ import ai.djl.ndarray.types.Shape;
 import ai.djl.translate.TranslateException;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.processing.SupportedOptions;
 
@@ -72,6 +76,17 @@ public class App implements Runnable {
     @Override
     public void run() {
         try {
+            System.out.println("Processing image: " + imageString);
+            System.out.println("Using PSF: " + psfString);
+            System.out.println("Using model: " + modelString);
+            System.out.println("Output will be saved to: " + outputString);
+
+            System.out.println(Files.exists(Paths.get(imageString))? "Image file exists." : "Image file does not exist.");
+            System.out.println(Files.exists(Paths.get(psfString))? "PSF file exists." : "PSF file does not exist.");
+            System.out.println(Files.exists(Paths.get(modelString))? "Model file exists." : "Model file does not exist.");
+            System.out.println("Starting processing...");
+            // Call the process method with the provided arguments
+
             process(imageString, psfString, modelString, outputString);
         } catch (Exception e) {
             e.printStackTrace();

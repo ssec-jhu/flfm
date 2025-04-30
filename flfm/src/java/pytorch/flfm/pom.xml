@@ -5,11 +5,11 @@
 
   <groupId>ai.jhu.edu.flfm</groupId>
   <artifactId>flfm</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <!-- TODO: make this dynamic -->
+  <version>0.1</version>
 
   <name>flfm</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <url>https://github.com/ssec-jhu/flfm</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -139,18 +139,6 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.3.0</version>
         </plugin>
-        <!-- <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.4.2</version>
-          <configuration>
-            <archive>
-              <manifest>
-                <addClasspath>true</addClasspath>
-                <mainClass>ai.jhu.edu.flfm.App</mainClass>
-              </manifest>
-            </archive>
-          </configuration>
-        </plugin> -->
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
           <version>3.1.2</version>
