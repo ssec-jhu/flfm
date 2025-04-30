@@ -53,9 +53,12 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
   > using: ``pip install -e .[dev]``.
   
   >[!NOTE]
-  > For Nvidia GPU utilization install ``jax["cuda12"]``, e.g., ``pip install jax["cuda12"]``.
-  > See the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation) for further details
-  > on supported hardware accelerator architectures and operating systems.
+  > For GPU acceleration either PyTorch or JAX can be re-installed with their accelerator options.
+  > For PyTorch see the [PyTorch installation docs](https://pytorch.org/get-started/locally/).
+  > E.g., ``pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126``.
+  > For JAX see the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation).
+  > E.g., ``pip install --upgrade jax["cuda12"]``. Since both are installed via ``requirements/prd.txt``, ``--upgrade``
+  > must  be used to re-install the accelerator versions.
 
   #### with Docker (C++ version only):
   * Download & install Docker - see [Docker install docs](https://docs.docker.com/get-docker/).
@@ -70,32 +73,43 @@ Follow the above [Build with Python ecosystem instructions](#with-python-ecosyst
 
 Using the command line interface (i.e., from a terminal prompt):
 ```term
-python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)"
+python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 ```
 
 Within a Python session or Jupyter notebook:
 ```python
-import jax.numpy as jnp
+backend = "torch"  # "jax"
 
-import flfm.io
-import flfm.restoration
+from functools import partial
+
+if backend == "torch":
+    import torch
+    psf_sum = partial(torch.sum, dim=(1, 2), keepdim=True)
+    import flfm.pytorch_io as flfm_io
+    import flfm.pytorch_restoration as flfm_restoration
+else:
+    import jax.numpy as jnp
+    psf_sum = partial(jnp.sum, axis=(1, 2), keepdims=True)
+    import flfm.io as flfm_io
+    import flfm.restoration as flfm_restoration
+
 import flfm.util
 
 # Read in images.
-image = flfm.io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/light_field_image.tif")
-psf = flfm.io.open("/Users/jamienoss/repos/adkins-flfm/flfm/data/yale/measured_psf.tif")
+image = flfm_io.open(flfm.util.find_repo_location()  / "data/yale/light_field_image.tif")
+psf = flfm_io.open(flfm.util.find_repo_location()  / "data/yale/measured_psf.tif")
 
 # Normalize PSF.
-psf_norm = psf / jnp.sum(psf, axis=(1,2), keepdims=True)
+psf_norm = psf / psf_sum(psf)
 
 # Compute reconstruction.
-reconstruction = flfm.restoration.richardson_lucy(image, psf_norm)
+reconstruction = flfm_restoration.richardson_lucy(image, psf_norm)
 
 # Clip image to view only central lens perspective.
 cropped_reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, center=(1000, 980), radius=230)
 
 # Save cropped reconstruction to file.
-flfm.io.save("reconstructed_image.tif", cropped_reconstruction)
+flfm_io.save("reconstructed_image.tif", cropped_reconstruction)
 ```
 
 
