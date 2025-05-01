@@ -26,3 +26,12 @@ def save(
     """Save a numpy array to file. The file format is determined by the filename suffix when present."""
     img = Image.fromarray(np.array(data[0]))
     img.save(filename, format=format, save_all=True, append_images=[Image.fromarray(np.array(d)) for d in data[1:]])
+
+
+def export_model(
+    num_steps: int,
+    out_path: str | Path,
+    img_size: tuple[int, int, int] = (),
+    psf_size: tuple[int, int, int] = (),
+) -> None:
+    """Unroll the Richardson-Lucy algorithm for a given number of steps amd save it."""

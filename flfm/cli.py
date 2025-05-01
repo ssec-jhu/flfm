@@ -2,6 +2,7 @@
 
 import io
 from pathlib import Path
+from types import ModuleType
 from typing import Literal
 
 import fire
@@ -11,6 +12,20 @@ import flfm.pytorch_io
 import flfm.pytorch_restoration
 import flfm.restoration
 import flfm.util
+
+
+def _validate_backend(backend: Literal["jax", "torch"]) -> tuple[ModuleType, ModuleType]:
+    """Validate the backend and return the appropriate modules."""
+    restoration, io = None, None
+    match backend:
+        case "torch":
+            return flfm.pytorch_restoration, flfm.pytorch_io
+        case "jax":
+            return flfm.restoration, flfm.io
+        case _:
+            raise ValueError(f"{backend} is not supported.")
+
+    return restoration, io
 
 
 def main(
@@ -33,15 +48,7 @@ def main(
         lens_center: Center of the lens to apply the circular mask to
         backend: Whether to use JAX or Torch. Default is "torch".
     """
-    match backend:
-        case "torch":
-            backend_restoration = flfm.pytorch_restoration
-            backend_io = flfm.pytorch_io
-        case "jax":
-            backend_restoration = flfm.restoration
-            backend_io = flfm.io
-        case _:
-            raise ValueError(f"{backend} is not supported.")
+    backend_restoration, backend_io = _validate_backend(backend)
 
     img = backend_io.open(img)
     psf = backend_io.open(psf)
@@ -58,5 +65,39 @@ def main(
     flfm.io.save(out, cropped)
 
 
+def export(
+    out: Path | str | io.BytesIO,
+    n_steps: int,
+    img_size: tuple[int, int, int] = (1, 2048, 2048),
+    psf_size: tuple[int, int, int] = (41, 2048, 2048),
+    backend: Literal["jax", "torch"] = "torch",
+) -> None:
+    """Export a model for use elserwhere.
+
+    Args:
+        out: Path to the output file.
+        n_steps: Number of steps to unroll.
+        img_size: Size of the image tensor, should be (1, h, w).
+        psf_size: Size of the PSF tensor, should be (k, h, w).
+        backend: Whether to use JAX or pytorch. Default is "torch".
+
+    Returns:
+        None
+    """
+    _, backend_io = _validate_backend(backend)
+
+    backend_io.export_model(
+        out,
+        n_steps,
+        img_size=img_size,
+        psf_size=psf_size,
+    )
+
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire(
+        {
+            "main": main,
+            "export": export,
+        }
+    )
