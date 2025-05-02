@@ -72,7 +72,7 @@ def export(
     psf_size: tuple[int, int, int] = (41, 2048, 2048),
     backend: Literal["jax", "torch"] = "torch",
 ) -> None:
-    """Export a model for use elserwhere.
+    """Export a model for use elsewhere.
 
     Args:
         out: Path to the output file.

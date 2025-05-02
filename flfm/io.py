@@ -4,7 +4,11 @@ from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
+import tensorflow as tf
+from jax.experimental import jax2tf
 from PIL import Image
+
+from flfm.restoration import compute_step_f
 
 
 def open(filename: str | Path) -> jnp.ndarray:
@@ -29,9 +33,54 @@ def save(
 
 
 def export_model(
-    num_steps: int,
     out_path: str | Path,
-    img_size: tuple[int, int, int] = (),
-    psf_size: tuple[int, int, int] = (),
+    num_steps: int,
+    img_size: tuple[int, int, int] = (1, 2048, 2048),
+    psf_size: tuple[int, int, int] = (41, 2048, 2048),
 ) -> None:
-    """Unroll the Richardson-Lucy algorithm for a given number of steps amd save it."""
+    """Unroll the Richardson-Lucy algorithm for a given number of steps and save it.
+
+    Args:
+        out_path: Path to save the model.
+        num_steps: Number of steps to unroll.
+        img_size: Size of the image tensor.
+        psf_size: Size of the PSF tensor.
+
+    Returns:
+        None
+    """
+
+    def rl(img: jnp.ndarray, psf: jnp.ndarray) -> jnp.ndarray:
+        psf_fft = jnp.fft.rfft2(psf)  # [k, n, n/2+1]
+        psft_fft = jnp.fft.rfft2(jnp.flip(psf))  # [k, n, n/2+1]
+        data = jnp.ones_like(psf) * 0.5  # [k, n, n]
+
+        for _ in range(num_steps):
+            data = compute_step_f(data, img, psf_fft, psft_fft)
+
+        return data
+
+    #  tf.config.list_physical_devices('GPU')
+    exported_f = tf.Module()
+    exported_f.f = tf.function(
+        jax2tf.convert(
+            rl,
+            with_gradient=False,
+            native_serialization_platforms=(
+                "cpu",
+                "cuda",
+            ),
+        ),
+        autograph=False,
+        input_signature=[
+            tf.TensorSpec(shape=img_size, dtype=tf.float32, name="image"),  # [1, n, n]
+            tf.TensorSpec(shape=psf_size, dtype=tf.float32, name="psf"),  # [k, n, n]
+        ],
+    )
+
+    exported_f.f(
+        tf.ones(img_size, dtype=tf.float32, name="image"),
+        tf.ones(psf_size, dtype=tf.float32, name="psf"),
+    )
+
+    tf.saved_model.save(exported_f, out_path)
