@@ -48,18 +48,25 @@ def export_model(
         None
     """
 
-    def rl(img: torch.Tensor, psf: torch.Tensor) -> torch.Tensor:
-        psf_fft = torch.fft.rfft2(psf)  # [k, n, n/2+1]
-        psft_fft = torch.fft.rfft2(torch.flip(psf))  # [k, n, n/2+1]
-        data = torch.ones_like(psf) * 0.5  # [k, n, n]
+    class RL(torch.nn.Module):
+        n_iter: torch.jit.Final[int]
 
-        for _ in range(num_steps):
-            data = compute_step_f(data, img, psf_fft, psft_fft)
+        def __init__(self, n_iter: int):
+            super().__init__()
+            self.n_iter = n_iter
 
-        return data
+        def forward(self, img: torch.Tensor, psf: torch.Tensor) -> torch.Tensor:
+            psf_fft = torch.fft.rfft2(psf)  # [k, n, n/2+1]
+            psft_fft = torch.fft.rfft2(torch.flip(psf, (-2, -1)))  # [k, n, n/2+1]
+            data = torch.ones_like(psf) * 0.5  # [k, n, n]
+
+            for _ in range(self.n_iter):
+                data = compute_step_f(data, img, psf_fft, psft_fft)
+
+            return data
 
     jitted_fn = torch.jit.script(
-        rl,
+        RL(num_steps),
         example_inputs=(
             torch.zeros(*img_size, dtype=torch.float32),
             torch.zeros(*psf_size, dtype=torch.float32),

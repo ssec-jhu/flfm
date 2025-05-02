@@ -1,17 +1,33 @@
 """Commannd line interface for FLFM."""
 
 import io
+import warnings
 from pathlib import Path
 from types import ModuleType
 from typing import Literal
 
 import fire
 
-import flfm.io
-import flfm.pytorch_io
-import flfm.pytorch_restoration
-import flfm.restoration
 import flfm.util
+
+ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
+BACKEND_SUCCESS = "FLFM {backend} loaded ✅"
+
+try:
+    import flfm.io
+    import flfm.restoration
+except ImportError:
+    warnings.warn(ERR_BACKEND_MSSG.format(backend="jax"), ImportWarning)
+else:
+    print(BACKEND_SUCCESS.format(backend="jax"))
+
+try:
+    import flfm.pytorch_io
+    import flfm.pytorch_restoration
+except ImportError:
+    warnings.warn(ERR_BACKEND_MSSG.format(backend="torch"), ImportWarning)
+else:
+    print(BACKEND_SUCCESS.format(backend="torch"))
 
 
 def _validate_backend(backend: Literal["jax", "torch"]) -> tuple[ModuleType, ModuleType]:
@@ -68,18 +84,18 @@ def main(
 def export(
     out: Path | str | io.BytesIO,
     n_steps: int,
+    backend: Literal["jax", "torch"] = "torch",
     img_size: tuple[int, int, int] = (1, 2048, 2048),
     psf_size: tuple[int, int, int] = (41, 2048, 2048),
-    backend: Literal["jax", "torch"] = "torch",
 ) -> None:
     """Export a model for use elsewhere.
 
     Args:
         out: Path to the output file.
         n_steps: Number of steps to unroll.
+        backend: Whether to use JAX or pytorch. Default is "torch".
         img_size: Size of the image tensor, should be (1, h, w).
         psf_size: Size of the PSF tensor, should be (k, h, w).
-        backend: Whether to use JAX or pytorch. Default is "torch".
 
     Returns:
         None

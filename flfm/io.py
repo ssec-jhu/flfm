@@ -60,16 +60,13 @@ def export_model(
 
         return data
 
-    #  tf.config.list_physical_devices('GPU')
+    serialize_gpu = len(tf.config.list_physical_devices("GPU")) > 0
     exported_f = tf.Module()
     exported_f.f = tf.function(
         jax2tf.convert(
             rl,
             with_gradient=False,
-            native_serialization_platforms=(
-                "cpu",
-                "cuda",
-            ),
+            native_serialization_platforms=["cpu"] + serialize_gpu * ["cuda"],
         ),
         autograph=False,
         input_signature=[
