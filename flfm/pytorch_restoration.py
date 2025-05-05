@@ -1,7 +1,5 @@
 """Deconvolution for FLFM observation reconstruction."""
 
-from pathlib import Path
-
 import torch
 
 
@@ -26,10 +24,9 @@ def richardson_lucy(
 ) -> torch.Tensor:
     """Reconstruct the image using the Richardson-Lucy deconvolution method."""
 
-    if torch.cuda.is_available():
-        # Move data to GPU.
-        image = image.to("cuda")
-        psf = psf.to("cuda")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    image = image.to(device)
+    psf = psf.to(device)
 
     if "clip" in kwargs or "filter_epsilon" in kwargs:
         raise NotImplementedError
@@ -44,32 +41,3 @@ def richardson_lucy(
         data = compute_step_f(data, image, psf_fft, psft_fft)
 
     return data.cpu()
-
-
-def unroll_and_save(
-    num_steps: int,
-    out_path: str | Path,
-    img_size: tuple[int, int, int] = (),
-    psf_size: tuple[int, int, int] = (),
-) -> None:
-    """Unroll the Richardson-Lucy algorithm for a given number of steps amd save it."""
-
-    def rl(img: torch.Tensor, psf: torch.Tensor) -> torch.Tensor:
-        psf_fft = torch.fft.rfft2(psf)  # [k, n, n/2+1]
-        psft_fft = torch.fft.rfft2(torch.flip(psf))  # [k, n, n/2+1]
-        data = torch.ones_like(psf) * 0.5  # [k, n, n]
-
-        for _ in range(num_steps):
-            data = compute_step_f(data, img, psf_fft, psft_fft)
-
-        return data
-
-    jitted_fn = torch.jit.script(
-        rl,
-        example_inputs=(
-            torch.zeros(*img_size, dtype=torch.float32),
-            torch.zeros(*psf_size, dtype=torch.float32),
-        ),
-    )
-
-    torch.jit.save(jitted_fn, out_path)

@@ -1,6 +1,8 @@
 import io
+from pathlib import Path
 
 import numpy as np
+import pytest
 from PIL import Image
 
 import flfm.cli
@@ -26,6 +28,34 @@ def arr_to_stream(arr: np.ndarray) -> io.BytesIO:
     )
     stream.seek(0)
     return stream
+
+
+@pytest.mark.parametrize(
+    ("backend_str", "expected_restoration", "expected_io"),
+    [
+        ("jax", flfm.restoration, flfm.io),
+        ("torch", flfm.pytorch_restoration, flfm.pytorch_io),
+    ],
+)
+def test_validate_backend(
+    backend_str: str,
+    expected_restoration: type,
+    expected_io: type,
+) -> None:
+    """Test the backend validation function."""
+    restoration, io = flfm.cli._validate_backend("jax")
+    assert restoration is flfm.restoration
+    assert io is flfm.io
+
+    restoration, io = flfm.cli._validate_backend("torch")
+    assert restoration is flfm.pytorch_restoration
+    assert io is flfm.pytorch_io
+
+
+def test_validate_backend_invalid() -> None:
+    """Test the backend validation function with an invalid backend."""
+    with pytest.raises(ValueError, match="not supported"):
+        flfm.cli._validate_backend("invalid_backend")
 
 
 def test_simple_integration() -> None:
@@ -110,7 +140,7 @@ def test_simple_integration_pytorch() -> None:
     assert out.shape == (n, 2 * r, 2 * r)
 
 
-def test_cli(tmp_path) -> None:
+def test_cli_main(tmp_path) -> None:
     """Test the command line interface."""
     r = 5
     n, h, w = 4, 32, 32
@@ -135,3 +165,24 @@ def test_cli(tmp_path) -> None:
     out_img = flfm.io.open(out_stream)
 
     assert out_img.shape == (n, 2 * r, 2 * r)
+
+
+@pytest.mark.parametrize("backend", ["torch", "jax"])
+def test_cli_export(tmp_path: Path, backend: str) -> None:
+    """Test the export command line interface."""
+    n_steps = 10
+    out_stream = tmp_path / ("exported_model" + (".pt" * (backend == "torch")))
+
+    flfm.cli.export(
+        out=out_stream,
+        n_steps=n_steps,
+        backend=backend,
+        img_size=(1, 2048, 2048),
+        psf_size=(41, 2048, 2048),
+    )
+
+    assert out_stream.exists()
+    if backend == "torch":
+        assert out_stream.is_file() and out_stream.suffix == ".pt"
+    else:
+        assert not out_stream.is_file()
