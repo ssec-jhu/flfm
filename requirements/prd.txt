@@ -1,5 +1,5 @@
 fire==0.7.0
-jax==0.5.3
+jax==0.6.0
 numpy<2.2.0
-pillow==11.1.0
 tensorflow==2.19.0
+pillow==11.2.1
