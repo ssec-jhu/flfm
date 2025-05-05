@@ -103,8 +103,8 @@ def export(
     _, backend_io = _validate_backend(backend)
 
     backend_io.export_model(
-        out,
-        n_steps,
+        Path(out),
+        int(n_steps),
         img_size=img_size,
         psf_size=psf_size,
     )
