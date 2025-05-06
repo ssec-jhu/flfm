@@ -1,19 +1,9 @@
 {
     "creators": [
         {
-            "affiliation": "Scientific Software Engineering Center at JHU",
-            "name": "Fatemeh Abbasinejad",
-            "orcid": "0009-0006-3239-7112"
-        },
-        {
-            "affiliation": "Scientific Software Engineering Center at JHU",
-            "name": "Samuel Carliles",
-            "orcid": "0000-0003-0273-9776"
-        },
-        {
-            "affiliation": "Scientific Software Engineering Center at JHU",
-            "name": "Xiang Chen",
-            "orcid": "0009-0003-6402-9822"
+            "affiliation": "Howard Lab at Yale University",
+            "name": "Raymond Adkins",
+            "orcid": "0000-0001-7622-2812"
         },
         {
             "affiliation": "Scientific Software Engineering Center at JHU",
@@ -22,23 +12,8 @@
         },
         {
             "affiliation": "Scientific Software Engineering Center at JHU",
-            "name": "Edward Hunter",
-            "orcid": "0000-0002-6876-001X"
-        },
-        {
-            "affiliation": "Scientific Software Engineering Center at JHU",
-            "name": "Vladimir Kluzner",
-            "orcid": "0009-0000-5844-661X"
-        },
-        {
-            "affiliation": "Scientific Software Engineering Center at JHU",
             "name": "Gerard Lemson",
             "orcid": "0000-0001-5041-2458"
-        },
-        {
-            "affiliation": "Scientific Software Engineering Center at JHU",
-            "name": "Arik Mitschang",
-            "orcid": "0000-0001-9239-012X"
         },
         {
             "affiliation": "Scientific Software Engineering Center at JHU",
@@ -46,8 +21,11 @@
             "orcid": "0000-0002-0922-5770"
         }
     ],
+    "references": [
+        "https://github.com/ssec-jhu/base-template 10.5281/zenodo.14052740."
+    ],
     "description": "Accelerating Software Development for Science Research",
-    "license": "other-open",
+    "license": "bsd-3-clause",
     "upload_type": "software",
     "access_right": "open"
 }
