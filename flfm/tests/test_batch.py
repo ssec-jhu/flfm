@@ -65,9 +65,7 @@ class TestBatchReconstruction:
         assert not flfm.util.find_files(output_dir)
 
         # Reduce memory consumption by only using half the # of CPUs.
-        processed_files = batch_reconstruction(
-            input_dir, output_dir, psf_filename, clobber=True, n_workers=mp.cpu_count() // 2
-        )
+        processed_files = batch_reconstruction(input_dir, output_dir, psf_filename, clobber=True, n_workers=2)
         assert len(flfm.util.find_files(mock_data)) == n_copies
         assert len(processed_files) == n_copies
 
@@ -90,7 +88,7 @@ class TestBatchReconstruction:
 
         # Reduce memory consumption by only using half the # of CPUs.
         processed_files = batch_reconstruction(
-            input_dir, output_dir, psf_filename, clobber=True, n_workers=mp.cpu_count() // 2, carry_on=True
+            input_dir, output_dir, psf_filename, clobber=True, n_workers=2, carry_on=True
         )
 
         assert len(flfm.util.find_files(mock_data)) == n_copies
