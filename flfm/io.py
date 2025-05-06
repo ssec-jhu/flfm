@@ -35,8 +35,8 @@ def save(
 def export_model(
     out_path: str | Path,
     num_steps: int,
-    img_size: tuple[int, int, int] = (1, 2048, 2048),
-    psf_size: tuple[int, int, int] = (41, 2048, 2048),
+    img_size: tuple[int, int, int],
+    psf_size: tuple[int, int, int],
 ) -> None:
     """Unroll the Richardson-Lucy algorithm for a given number of steps and save it.
 
