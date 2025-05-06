@@ -1,26 +1,43 @@
 import multiprocessing as mp
 import shutil
+from pathlib import Path
 
 import pytest
+from dask.distributed import LocalCluster
 
 import flfm.io
 import flfm.util
-from flfm.batch import batch_reconstruction, mock_batch_data
-from flfm.settings import settings
-
-# TODO: Refactor this to some __init__.py. See https://github.com/ssec-jhu/flfm/issues/146.
-match settings.BACKEND:
-    case "torch":
-        import flfm.pytorch_io as flfm_io
-    case "jax":
-        import flfm.io as flfm_io
-    case _:
-        raise NotImplementedError(f"Backend {settings.BACKEND} not implemented.")
-
+from flfm.batch import batch_reconstruction
 
 data_dir = flfm.util.find_repo_location() / "data" / "yale"
 input_filename = data_dir / "light_field_image.tif"
+psf_filename = data_dir / "measured_psf.tif"
 n_copies = 5
+
+
+def mock_batch_data(image_filename: str | Path, output_dir: str | Path, n_copies: int):
+    """This helper func can be used to create mock data sets/dirs for, e.g., perf testing."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    image_filename = Path(image_filename)
+
+    def do_copy(input_filename, output_filename):
+        shutil.copy(input_filename, output_filename)
+
+    cluster = LocalCluster(n_workers=mp.cpu_count(), threads_per_worker=2)
+    client = cluster.get_client()
+
+    futures = []
+    for i in range(n_copies):
+        future = client.submit(
+            do_copy,
+            image_filename,
+            output_dir / f"{image_filename.stem}_{i + 1}{image_filename.suffix}",
+        )
+        futures.append(future)
+
+    client.gather(futures)
 
 
 @pytest.fixture
@@ -35,12 +52,11 @@ def mock_data(tmp_path):
     return output_dir
 
 
-class TestBatch:
+class TestBatchReconstruction:
     def test_mock_data(self, mock_data):
         assert len(flfm.util.find_files(mock_data)) == n_copies
 
     def test_batch_reconstruction(self, mock_data):
-        psf = flfm_io.open(data_dir / "measured_psf.tif")
         input_dir = mock_data
         output_dir = mock_data.parent / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -49,12 +65,13 @@ class TestBatch:
         assert not flfm.util.find_files(output_dir)
 
         # Reduce memory consumption by only using half the # of CPUs.
-        processed_files = batch_reconstruction(input_dir, output_dir, psf, clobber=True, n_workers=mp.cpu_count() // 2)
+        processed_files = batch_reconstruction(
+            input_dir, output_dir, psf_filename, clobber=True, n_workers=mp.cpu_count() // 2
+        )
         assert len(flfm.util.find_files(mock_data)) == n_copies
         assert len(processed_files) == n_copies
 
     def test_carry_on(self, mock_data):
-        psf = flfm_io.open(data_dir / "measured_psf.tif")
         input_dir = mock_data
         output_dir = mock_data.parent / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -73,7 +90,7 @@ class TestBatch:
 
         # Reduce memory consumption by only using half the # of CPUs.
         processed_files = batch_reconstruction(
-            input_dir, output_dir, psf, clobber=True, n_workers=mp.cpu_count() // 2, carry_on=True
+            input_dir, output_dir, psf_filename, clobber=True, n_workers=mp.cpu_count() // 2, carry_on=True
         )
 
         assert len(flfm.util.find_files(mock_data)) == n_copies

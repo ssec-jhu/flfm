@@ -42,7 +42,7 @@ def find_files(directory: str | Path, ext=None):
     directory = Path(directory)
     file_list = []
     for file in directory.iterdir():
-        if ext is not None and not file.endswith(ext):
+        if (ext is not None) and (not file.suffix == ext):
             continue
         full_path = directory / file
         if full_path.is_file():

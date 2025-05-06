@@ -1,5 +1,5 @@
 from flfm import __project__, __version__
-from flfm.util import find_package_location, find_repo_location
+from flfm.util import find_files, find_package_location, find_repo_location
 
 
 def test_find_repo_location():
@@ -29,3 +29,11 @@ def test_version():
 
 def test_project():
     assert __project__
+
+
+def test_find_files():
+    filenames = find_files(find_repo_location() / "data" / "yale")
+    assert len(filenames) == 2
+
+    filenames = find_files(find_repo_location() / "data" / "yale", ext=".txt")
+    assert len(filenames) == 0

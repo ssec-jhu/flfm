@@ -1,5 +1,5 @@
 import multiprocessing
-import shutil
+from functools import partial
 from pathlib import Path
 
 from dask.distributed import LocalCluster
@@ -10,18 +10,31 @@ from flfm.settings import settings
 # TODO: Refactor this to some __init__.py. See https://github.com/ssec-jhu/flfm/issues/146.
 match settings.BACKEND:
     case "torch":
+        import torch
+
+        psf_sum = partial(torch.sum, dim=(1, 2), keepdim=True)
         import flfm.pytorch_io as flfm_io
         import flfm.pytorch_restoration as flfm_restoration
     case "jax":
+        import jax.numpy as jnp
+
+        psf_sum = partial(jnp.sum, axis=(1, 2), keepdims=True)
         import flfm.io as flfm_io
         import flfm.restoration as flfm_restoration
     case _:
         raise NotImplementedError(f"Backend {settings.BACKEND} not implemented.")
 
 
-def do_reconstruction(psf, image_filename, output_filename, recon_kwargs, crop_kwargs, write=False):
+def do_reconstruction(
+    psf_filename, image_filename, output_filename, normalize_psf, recon_kwargs, crop_kwargs, write=False
+):
     """Do full reconstruction and save to file."""
     # TODO: Move this func to same place that wrappers live for #146 & #135.
+
+    # Open PSF image and optionally normalize.
+    psf = flfm_io.open(psf_filename)
+    if normalize_psf:
+        psf = psf / psf_sum(psf)
 
     # Open light-field image.
     image = flfm_io.open(image_filename)
@@ -38,34 +51,41 @@ def do_reconstruction(psf, image_filename, output_filename, recon_kwargs, crop_k
 def batch_reconstruction(
     input_dir: str | Path,
     output_dir: str | Path,
-    psf,
+    psf_filename: str | Path,
+    normalize_psf: bool = True,
     n_workers: int | None = None,
     n_threads: int = 2,
-    clobber=False,
-    recon_kwargs=None,
-    crop_kwargs=None,
-    carry_on=False,
+    clobber: bool = False,
+    recon_kwargs: dict | None = None,
+    crop_kwargs: dict | None = None,
+    carry_on: bool = False,
 ):
-    """
-    Batch parallel process multiple 3D reconstructions of input light-field images present in `input_dir`.
+    """Batch parallel process multiple 3D reconstructions of input light-field images present in `input_dir`.
 
-    :param input_dir: Input directory.
-    :param output_dir: Output directory.
-    :param psf: Loaded PSF image.
-    :param n_workers: Numbers of parallel workers.
-    :param n_threads: Number of threads per worker.
-    :param clobber: Write over files in `output_dir`, otherwise raise if `output_dir` exists. Defaults to `False`.
-    :param recon_kwargs: kwargs passed to `richardson_lucy()`.
-    :param crop_kwargs: kwargs pass to `flfm.util.crop_and_apply_circle_mask()`.
-    :param carry_on: Whether to continue processing from a previous attempt. Will only process input files not in
-    `output_dir`.
-    :return: List of processed filenames.
+    Args:
+        input_dir (:obj:`str` | :obj: `Path`): Input directory.
+        output_dir (:obj:`str` | :obj: `Path`): Output directory.
+        psf_filename (:obj:`str` | :obj: `Path`): PSF filename.
+        normalize_psf (bool, optional): Whether to normalize PSF before reconstruction. Defaults to True.
+        n_workers (int, optional): Numbers of parallel workers.  Defaults to None.
+        n_threads (int, optional): Number of threads per worker.  Defaults to 2.
+        clobber (bool, optional): Write over files in `output_dir`, otherwise raise if `output_dir` exists.
+            Defaults to `False`.
+        recon_kwargs (:obj:`dict`, optional): kwargs passed to `richardson_lucy()`.  Defaults to None.
+        crop_kwargs (:obj:`dict`, optional):: kwargs pass to `flfm.util.crop_and_apply_circle_mask()`. Defaults to None.
+        carry_on (bool, optional): Whether to continue processing from a previous attempt. Will only process input
+            files not in `output_dir`.  Defaults to False.
+
+    Returns:
+       list[Path]: List of processed filenames.
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=clobber or carry_on)
 
     input_dir = Path(input_dir)
     input_filenames = flfm.util.find_files(input_dir)
+
+    psf_filename = Path(psf_filename)
 
     if carry_on:
         existing_output_files = [x.name for x in flfm.util.find_files(output_dir)]
@@ -87,9 +107,10 @@ def batch_reconstruction(
         output_filename = output_dir / filename
         future = client.submit(
             do_reconstruction,
-            psf,
+            psf_filename,
             filename,
             output_filename,
+            normalize_psf=normalize_psf,
             recon_kwargs=recon_kwargs,
             crop_kwargs=crop_kwargs,
             write=True,
@@ -98,28 +119,3 @@ def batch_reconstruction(
 
     client.gather(futures)
     return input_filenames
-
-
-def mock_batch_data(image_filename: str | Path, output_dir: str | Path, n_copies: int):
-    """This helper func can be used to create mock data sets/dirs for, e.g., perf testing."""
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    image_filename = Path(image_filename)
-
-    def do_copy(input_filename, output_filename):
-        shutil.copy(input_filename, output_filename)
-
-    cluster = LocalCluster(n_workers=multiprocessing.cpu_count(), threads_per_worker=2)
-    client = cluster.get_client()
-
-    futures = []
-    for i in range(n_copies):
-        future = client.submit(
-            do_copy,
-            image_filename,
-            output_dir / f"{image_filename.stem}_{i + 1}{image_filename.suffix}",
-        )
-        futures.append(future)
-
-    client.gather(futures)
