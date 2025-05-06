@@ -57,14 +57,15 @@ public class App implements Runnable {
         try(NDManager manager = NDManager.newBaseManager()){
             NDArray image = ArrayIO.loadArray(imagePath, manager);
             NDArray psf = ArrayIO.loadArray(psfPath, manager);
-            NDArray normedPsf = psf.div(psf.sum());
+            // Normalize the PSF
+            psf.divi(psf.sum());
 
             try (Model model = Model.newInstance("flfm", "PyTorch")) {
                 model.load(Paths.get(modelPath));
 
                 try (Predictor<NDArray[], NDArray> predictor = model.newPredictor(new MyTranslator())) {
                     long start = System.currentTimeMillis();
-                    NDArray out = predictor.predict(new NDArray[]{image, normedPsf});
+                    NDArray out = predictor.predict(new NDArray[]{image, psf});
                     long end = System.currentTimeMillis();
                     System.out.println("Prediction took " + (end - start) + " ms");
                     ArrayIO.saveArray(outputPath, out);
