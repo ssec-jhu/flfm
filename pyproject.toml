@@ -105,6 +105,9 @@ exclude = [
 ]
 target-version = "py311"
 
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+
 [tool.ruff.lint.pydocstyle] # https://docs.astral.sh/ruff/settings/#lint_pydocstyle_convention
 convention = "google"
 
