@@ -140,7 +140,8 @@ def test_simple_integration_pytorch() -> None:
     assert out.shape == (n, 2 * r, 2 * r)
 
 
-def test_cli_main(tmp_path) -> None:
+@pytest.mark.parametrize("backend", ["torch", "jax"])
+def test_cli_main(tmp_path: Path, backend: str) -> None:
     """Test the command line interface."""
     r = 5
     n, h, w = 4, 32, 32
@@ -160,6 +161,7 @@ def test_cli_main(tmp_path) -> None:
         out=out_stream,
         lens_radius=r,
         num_iters=1,
+        backend=backend,
     )
 
     out_img = flfm.io.open(out_stream)
