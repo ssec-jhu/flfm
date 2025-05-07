@@ -1,16 +1,47 @@
 """Commannd line interface for FLFM."""
 
 import io
+import warnings
 from pathlib import Path
+from types import ModuleType
 from typing import Literal
 
 import fire
 
-import flfm.io
-import flfm.pytorch_io
-import flfm.pytorch_restoration
-import flfm.restoration
 import flfm.util
+
+ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
+BACKEND_SUCCESS = "FLFM {backend} loaded ✅"
+
+try:
+    import flfm.io
+    import flfm.restoration
+except ImportError:
+    warnings.warn(ERR_BACKEND_MSSG.format(backend="jax"), ImportWarning)
+else:
+    print(BACKEND_SUCCESS.format(backend="jax"))
+
+try:
+    import flfm.pytorch_io
+    import flfm.pytorch_restoration
+except ImportError:
+    warnings.warn(ERR_BACKEND_MSSG.format(backend="torch"), ImportWarning)
+else:
+    print(BACKEND_SUCCESS.format(backend="torch"))
+
+
+def _validate_backend(backend: Literal["jax", "torch"]) -> tuple[ModuleType, ModuleType]:
+    """Validate the backend and return the appropriate modules."""
+    restoration, io = None, None
+    match backend:
+        case "torch":
+            return flfm.pytorch_restoration, flfm.pytorch_io
+        case "jax":
+            return flfm.restoration, flfm.io
+        case _:
+            raise ValueError(f"{backend} is not supported.")
+
+    return restoration, io
 
 
 def main(
@@ -33,15 +64,7 @@ def main(
         lens_center: Center of the lens to apply the circular mask to
         backend: Whether to use JAX or Torch. Default is "torch".
     """
-    match backend:
-        case "torch":
-            backend_restoration = flfm.pytorch_restoration
-            backend_io = flfm.pytorch_io
-        case "jax":
-            backend_restoration = flfm.restoration
-            backend_io = flfm.io
-        case _:
-            raise ValueError(f"{backend} is not supported.")
+    backend_restoration, backend_io = _validate_backend(backend)
 
     img = backend_io.open(img)
     psf = backend_io.open(psf)
@@ -58,5 +81,39 @@ def main(
     flfm.io.save(out, cropped)
 
 
+def export(
+    out: Path | str | io.BytesIO,
+    n_steps: int,
+    backend: Literal["jax", "torch"] = "torch",
+    img_size: tuple[int, int, int] = (1, 2048, 2048),
+    psf_size: tuple[int, int, int] = (41, 2048, 2048),
+) -> None:
+    """Export a model for use elsewhere.
+
+    Args:
+        out: Path to the output file.
+        n_steps: Number of steps to unroll.
+        backend: Whether to use JAX or pytorch. Default is "torch".
+        img_size: Size of the image tensor, should be (1, h, w).
+        psf_size: Size of the PSF tensor, should be (k, h, w).
+
+    Returns:
+        None
+    """
+    _, backend_io = _validate_backend(backend)
+
+    backend_io.export_model(
+        Path(out),
+        int(n_steps),
+        img_size=img_size,
+        psf_size=psf_size,
+    )
+
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire(
+        {
+            "main": main,
+            "export": export,
+        }
+    )

@@ -1,0 +1,53 @@
+# TODO: look at dji official docker image for GPU support
+# https://github.com/deepjavalibrary/djl/blob/master/docker/README.md
+
+
+# Mutle-stage build for Java with PyTorch support
+# Base image with Maven and JDK 8
+
+FROM python:3.11 AS py_builder
+
+RUN ln -sf /bin/bash /bin/sh
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /
+RUN mkdir /data
+COPY /flfm/ /flfm
+COPY requirements/build.txt /build.txt
+COPY requirements/pytorch.cpu.txt /pytorch.cpu.txt
+COPY requirements/prd.txt /prd.txt
+
+RUN python -m pip install --upgrade pip
+RUN python -m pip install -r /pytorch.cpu.txt
+RUN python -m pip install -r /build.txt
+RUN python -m pip install -r /prd.txt
+RUN ls -al /flfm
+RUN python -m flfm.cli export \
+    --out /data/model.pt \
+    --n_steps 10 \
+    --backend torch
+
+
+FROM maven:3.9.9-eclipse-temurin-24-alpine AS java_builder
+WORKDIR /
+COPY flfm/src/java/pytorch/flfm/ /flfm/
+RUN mvn install -f /flfm
+
+
+FROM ubuntu/jre:21-24.04_stable
+WORKDIR /
+COPY --from=java_builder /flfm/target/flfm-0.1-jar-with-dependencies.jar /flfm/
+COPY --from=py_builder /data/model.pt /data/
+COPY ./data/yale/*.tif /data/
+# canonical recommends the below command because it uses pebble,
+# but that throws the following error:
+# Error: Unable to access jarfile flfm-0.1-jar-with-dependencies.jar
+# CMD [ "exec", "java", "-jar", "flfm/flfm-0.1-jar-with-dependencies.jar"]
+# this works though
+ENTRYPOINT [\
+    "java", "-jar", "./flfm/flfm-0.1-jar-with-dependencies.jar", \
+    "-i", "/data/light_field_image.tif", \
+    "-m", "/data/model.pt", \
+    "-o", "/data/test_output.tif", \
+    "-p", "/data/measured_psf.tif" \
+]

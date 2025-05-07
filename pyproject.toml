@@ -12,7 +12,7 @@ requires-python = ">=3.11"
 dependencies = [
     "fire",
     "jax",
-    "numpy",
+    "numpy<2.2.0",
     "pillow",
     "torch",
     "torchaudio",
