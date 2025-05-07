@@ -3,6 +3,8 @@
 import jax
 import jax.numpy as jnp
 
+from flfm.settings import settings
+
 
 @jax.jit
 def compute_step_f(
@@ -20,7 +22,7 @@ def compute_step_f(
 def richardson_lucy(
     image: jnp.ndarray,  # [1, n, n]
     psf: jnp.ndarray,  # [k, n, n]
-    num_iter: int = 10,
+    num_iter: int = settings.DEFAULT_RL_ITERS,
     **kwargs,
 ) -> jnp.ndarray:
     """Reconstruct the image using the Richardson-Lucy deconvolution method."""

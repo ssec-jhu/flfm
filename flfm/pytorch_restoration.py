@@ -2,6 +2,8 @@
 
 import torch
 
+from flfm.settings import settings
+
 
 @torch.jit.script
 def compute_step_f(
@@ -19,7 +21,7 @@ def compute_step_f(
 def richardson_lucy(
     image: torch.Tensor,  # [1, n, n]
     psf: torch.Tensor,  # [k, n, n]
-    num_iter: int = 10,
+    num_iter: int = settings.DEFAULT_RL_ITERS,
     **kwargs,
 ) -> torch.Tensor:
     """Reconstruct the image using the Richardson-Lucy deconvolution method."""
