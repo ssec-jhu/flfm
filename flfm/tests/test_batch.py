@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import os
 import shutil
 from pathlib import Path
 
@@ -13,6 +14,7 @@ data_dir = flfm.util.find_repo_location() / "data" / "yale"
 input_filename = data_dir / "light_field_image.tif"
 psf_filename = data_dir / "measured_psf.tif"
 n_copies = 5
+n_workers = 1 if os.environ.get("CI") else 2
 
 
 def mock_batch_data(image_filename: str | Path, output_dir: str | Path, n_copies: int):
@@ -25,7 +27,7 @@ def mock_batch_data(image_filename: str | Path, output_dir: str | Path, n_copies
     def do_copy(input_filename, output_filename):
         shutil.copy(input_filename, output_filename)
 
-    with LocalCluster(n_workers=mp.cpu_count(), threads_per_worker=2) as cluster:
+    with LocalCluster(n_workers=mp.cpu_count(), threads_per_worker=n_workers) as cluster:
         client = cluster.get_client()
 
         futures = []
@@ -65,7 +67,7 @@ class TestBatchReconstruction:
         assert not flfm.util.find_files(output_dir)
 
         # Reduce memory consumption by only using half the # of CPUs.
-        processed_files = batch_reconstruction(input_dir, output_dir, psf_filename, clobber=True, n_workers=2)
+        processed_files = batch_reconstruction(input_dir, output_dir, psf_filename, clobber=True, n_workers=n_workers)
         assert len(flfm.util.find_files(mock_data)) == n_copies
         assert len(processed_files) == n_copies
 
