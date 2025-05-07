@@ -4,7 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/flfm/badge/?version=latest)](https://flfm.readthedocs.io/en/latest/)
 [![codecov](https://codecov.io/gh/ssec-jhu/flfm/graph/badge.svg?token=l3ND0EA9dE)](https://codecov.io/gh/ssec-jhu/flfm)
 [![Security](https://github.com/ssec-jhu/flfm/actions/workflows/security.yml/badge.svg)](https://github.com/ssec-jhu/flfm/actions/workflows/security.yml)
-<!---[![DOI](https://zenodo.org/badge/<insert_ID_number>.svg)](https://zenodo.org/badge/latestdoi/<insert_ID_number>) --->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15353540.svg)](https://doi.org/10.5281/zenodo.15353540)
 
 
 ![SSEC-JHU Logo](docs/_static/SSEC_logo_horiz_blue_1152x263.png)
