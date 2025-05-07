@@ -33,7 +33,7 @@ def test_project():
 
 def test_find_files():
     filenames = find_files(find_repo_location() / "data" / "yale")
-    assert len(filenames) == 2
+    assert len(filenames) == 3
 
     filenames = find_files(find_repo_location() / "data" / "yale", ext=".txt")
-    assert len(filenames) == 0
+    assert len(filenames) == 1
