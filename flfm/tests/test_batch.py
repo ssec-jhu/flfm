@@ -25,19 +25,19 @@ def mock_batch_data(image_filename: str | Path, output_dir: str | Path, n_copies
     def do_copy(input_filename, output_filename):
         shutil.copy(input_filename, output_filename)
 
-    cluster = LocalCluster(n_workers=mp.cpu_count(), threads_per_worker=2)
-    client = cluster.get_client()
+    with LocalCluster(n_workers=mp.cpu_count(), threads_per_worker=2) as cluster:
+        client = cluster.get_client()
 
-    futures = []
-    for i in range(n_copies):
-        future = client.submit(
-            do_copy,
-            image_filename,
-            output_dir / f"{image_filename.stem}_{i + 1}{image_filename.suffix}",
-        )
-        futures.append(future)
+        futures = []
+        for i in range(n_copies):
+            future = client.submit(
+                do_copy,
+                image_filename,
+                output_dir / f"{image_filename.stem}_{i + 1}{image_filename.suffix}",
+            )
+            futures.append(future)
 
-    client.gather(futures)
+        client.gather(futures)
 
 
 @pytest.fixture

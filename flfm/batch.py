@@ -98,24 +98,24 @@ def batch_reconstruction(
         center=(settings.DEFAULT_CENTER_X, settings.DEFAULT_CENTER_Y), radius=settings.DEFAULT_RADIUS
     )
 
-    cluster = LocalCluster(n_workers=n_workers or multiprocessing.cpu_count(), threads_per_worker=n_threads)
-    client = cluster.get_client()
+    with LocalCluster(n_workers=n_workers or multiprocessing.cpu_count(), threads_per_worker=n_threads) as cluster:
+        client = cluster.get_client()
 
-    futures = []
-    for i, filename in enumerate(input_filenames):
-        print(f"({i + 1}/{len(input_filenames)}): Processing '{filename}'...")
-        output_filename = output_dir / filename
-        future = client.submit(
-            do_reconstruction,
-            psf_filename,
-            filename,
-            output_filename,
-            normalize_psf=normalize_psf,
-            recon_kwargs=recon_kwargs,
-            crop_kwargs=crop_kwargs,
-            write=True,
-        )
-        futures.append(future)
+        futures = []
+        for i, filename in enumerate(input_filenames):
+            print(f"({i + 1}/{len(input_filenames)}): Processing '{filename}'...")
+            output_filename = output_dir / filename
+            future = client.submit(
+                do_reconstruction,
+                psf_filename,
+                filename,
+                output_filename,
+                normalize_psf=normalize_psf,
+                recon_kwargs=recon_kwargs,
+                crop_kwargs=crop_kwargs,
+                write=True,
+            )
+            futures.append(future)
 
-    client.gather(futures)
+        client.gather(futures)
     return input_filenames
