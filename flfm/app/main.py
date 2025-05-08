@@ -7,6 +7,7 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 from dash import ALL, MATCH, Dash, Input, Output, State, callback, dcc, html, no_update
 from fastapi import FastAPI
+from numpy.typing import ArrayLike
 
 import flfm.util
 from flfm.settings import app_settings, settings
@@ -48,7 +49,7 @@ dash_app = Dash(__name__, external_stylesheets=external_stylesheets, on_error=ex
 dash_server = dash_app.server
 
 
-def plot_image(data, *args, color_scale=app_settings.IMSHOW_COLOR_SCALE, **kwargs):
+def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_COLOR_SCALE, **kwargs):
     fig = px.imshow(data, *args, color_continuous_scale=color_scale, **kwargs)
     fig.update_xaxes(showticklabels=app_settings.IMSHOW_SHOW_TICK_LABELS)
     fig.update_yaxes(showticklabels=app_settings.IMSHOW_SHOW_TICK_LABELS)
@@ -269,7 +270,7 @@ dash_app.layout = dash_layout
     State(dict(type="upload", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def upload_data(contents, filename, id):
+def upload_data(contents: str, filename: str, id: dict[str, str]):
     """Upload data/image files."""
     global image_data
     id = id["index"]
@@ -299,7 +300,9 @@ def enable_normalization_button(_):
     State(dict(type="image-slider", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def update_image_from_slider(value, tooltip, n_frames, step_size, color_scale, id):
+def update_image_from_slider(
+    value: int, tooltip: dict, n_frames: int, step_size: float, color_scale: str, id: dict[str, str]
+):
     """Re-plot image based on frame/depth selected from slider."""
     global image_data
     # tooltip.transform (clientside js )would render faster than updating the template in a server side callback,
@@ -318,13 +321,13 @@ def update_image_from_slider(value, tooltip, n_frames, step_size, color_scale, i
     State({"type": "n-frames", "index": "psf"}, "data"),
     prevent_initial_call=True,
 )
-def update_slider_tooltip(depth_step_size, values, tooltips, n_frames):
+def update_slider_tooltip(depth_step_size: float, values: list[int], tooltips: dict, n_frames: int):
     for i, value in enumerate(values):
         tooltips[i]["template"] = slider_template_str(value, _center_frame(n_frames), depth_step_size)
     return tooltips
 
 
-def _display_image_with_slider(data, id):
+def _display_image_with_slider(data: ArrayLike, id: str):
     """Plot image and display frame/depth slider (where appropriate)."""
     if data is None:
         return no_update
@@ -358,7 +361,7 @@ def _display_image_with_slider(data, id):
     return children, n_frames
 
 
-def upload_file(contents, filename):
+def upload_file(contents: str, filename: str):
     """Read in data/image files."""
     if contents is not None:
         logger.info(f"Uploading {filename}...")
@@ -379,7 +382,7 @@ def upload_file(contents, filename):
     State("radius", "value"),
     prevent_initial_call=True,
 )
-def reconstruct(n_clicks, rl_iters, center_x, centre_y, radius):
+def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radius: int):
     """RUN FLFM reconstruction and return reconstructed image."""
     global image_data
     if n_clicks == 0:
@@ -394,7 +397,7 @@ def reconstruct(n_clicks, rl_iters, center_x, centre_y, radius):
     )
     image_data[id] = flfm.util.crop_and_apply_circle_mask(
         image_data["uncropped_reconstruction"],
-        center=(center_x, centre_y),
+        center=(center_x, center_y),
         radius=radius,
     )
     children, _n_frames = _display_image_with_slider(image_data[id], id=id)
@@ -409,7 +412,7 @@ def reconstruct(n_clicks, rl_iters, center_x, centre_y, radius):
     State(dict(type="color-scale", index="psf"), "value"),
     prevent_initial_call=True,
 )
-def normalize_psf(n_clicks, frame, color_scale):
+def normalize_psf(n_clicks: int, frame: int, color_scale: str):
     """Normalize PSF and disable button once normalized."""
     global image_data
     if n_clicks == 0 or image_data["psf"] is None:
@@ -429,7 +432,7 @@ def normalize_psf(n_clicks, frame, color_scale):
     State(dict(type="image-slider", index="reconstruction"), "value"),
     prevent_initial_call=True,
 )
-def update_crop(center_x, center_y, radius, frame):
+def update_crop(center_x: int, center_y: int, radius: int, frame: int):
     if image_data["uncropped_reconstruction"] is None:
         return no_update
 
@@ -447,7 +450,7 @@ def update_crop(center_x, center_y, radius, frame):
     State(dict(type="color-scale", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def update_color_scale(color_scale, frame, id):
+def update_color_scale(color_scale: str, frame: int, id: str):
     fig = plot_image(image_data[id["index"]][frame, :, :], color_scale=color_scale)
     return fig
 
