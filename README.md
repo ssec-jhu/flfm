@@ -55,10 +55,11 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
   >[!NOTE]
   > For GPU acceleration either PyTorch or JAX can be re-installed with their accelerator options.
   > For PyTorch see the [PyTorch installation docs](https://pytorch.org/get-started/locally/).
-  > E.g., ``pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126``.
+  > E.g., ``pip install --force -r requirements/pytorch.txt --index-url https://download.pytorch.org/whl/cu126``.
   > For JAX see the [JAX installation docs](https://docs.jax.dev/en/latest/installation.html#installation).
-  > E.g., ``pip install --upgrade jax["cuda12"]``. Since both are installed via ``requirements/prd.txt``, ``--upgrade``
-  > must  be used to re-install the accelerator versions.
+  > E.g., ``pip install --force jax["cuda12"]``. Since both are installed via ``requirements/prd.txt``, ``--force``
+  > or ``--upgrade`` must  be used to re-install the accelerator versions.  ``--force`` is preferable as it will error
+  > if the distribution is not available at the given url index, however ``--upgrade`` may not.
 
   #### with Docker (C++ version only):
   * Download & install Docker - see [Docker install docs](https://docs.docker.com/get-docker/).
