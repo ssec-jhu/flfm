@@ -226,7 +226,7 @@ def dash_layout():
                                                 ),
                                                 "Radius",
                                                 dbc.Input(
-                                                    value=settings.DEFUALT_RADIUS,
+                                                    value=settings.DEFAULT_RADIUS,
                                                     type="number",
                                                     id="radius",
                                                     debounce=app_settings.DEBOUNCE,
@@ -362,7 +362,7 @@ def upload_file(contents, filename):
     """Read in data/image files."""
     if contents is not None:
         logger.info(f"Uploading {filename}...")
-        content_type, content_string = contents.split(",", maxsplit=1)
+        _content_type, content_string = contents.split(",", maxsplit=1)
         decoded = base64.b64decode(content_string)
         bytestream = io.BytesIO(decoded)
         data = flfm_io.open(bytestream)
