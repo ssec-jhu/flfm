@@ -10,7 +10,7 @@ import flfm.io
 import flfm.util
 from flfm.batch import batch_reconstruction
 
-data_dir = flfm.util.find_repo_location() / "data" / "yale"
+data_dir = flfm.util.find_package_location() / "tests" / "data" / "yale"
 input_filename = data_dir / "light_field_image.tif"
 psf_filename = data_dir / "measured_psf.tif"
 n_copies = 5

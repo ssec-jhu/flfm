@@ -74,8 +74,10 @@ Follow the above [Build with Python ecosystem instructions](#with-python-ecosyst
 
 Using the command line interface (i.e., from a terminal prompt):
 ```term
-python flfm/cli.py data/yale/light_field_image.tif data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
+python flfm/cli.py main flfm/tests/data/yale/light_field_image.tif flfm/tests/data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 ```
+
+_NOTE: The above data files are only present when cloning the repo and not when pip installing the package.
 
 Within a Python session or Jupyter notebook:
 ```python
@@ -96,9 +98,9 @@ else:
 
 import flfm.util
 
-# Read in images.
-image = flfm_io.open(flfm.util.find_repo_location()  / "data/yale/light_field_image.tif")
-psf = flfm_io.open(flfm.util.find_repo_location()  / "data/yale/measured_psf.tif")
+# Read in images. NOTE: These data files are only present when cloning the repo and not when pip installing the package.
+image = flfm_io.open(flfm.util.find_package_location()  / "tests/data/yale/light_field_image.tif")
+psf = flfm_io.open(flfm.util.find_package_location()  / "tests/data/yale/measured_psf.tif")
 
 # Normalize PSF.
 psf_norm = psf / psf_sum(psf)
