@@ -115,6 +115,51 @@ cropped_reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, ce
 flfm_io.save("reconstructed_image.tif", cropped_reconstruction)
 ```
 
+# Starting the UI app
+
+Follow the above [Build with Python ecosystem instructions](#with-python-ecosystem). Then install the additional application
+dependencies:
+
+```terminal
+pip install -r requirements/app.txt
+```
+
+Start the app from a terminal with:
+```terminal
+python flfm/app/main.py
+```
+
+The app should then be reachable from a browser at ``127.0.0.1:8080``.
+
+The host IP and port number are set and can be edited in ``flfm/settings.py``. The following environmental variables can also be used.
+ * ``FLFM_APP_HOST``
+ * ``FLFM_APP_PORT``
+
+For example, to change the port number before starting the app you can use:
+```terminal
+FLFM_APP_PORT=8000 python flfm/app/main.py
+```
+
+### From a Jupyter notebook
+
+Run the following in a notebook cell.
+
+```python
+from flfm.app.main import dash_app
+dash_app.run()
+```
+
+See [dash in jupyter](https://dash.plotly.com/dash-in-jupyter) for further options and details.
+
+### Manually using uvicorn/gunicorn
+Run either of the following from a terminal:
+```terminal
+FLFM_APP_WEB_API=fastapi uvicorn flfm.app.main:app --host=127.0.0.1 --port=8080
+```
+
+```terminal
+FLFM_APP_WEB_API=flask gunicorn flfm.app.main:dash_server -b 127.0.0.1:8080
+```
 
 # Testing
 _NOTE: The following steps require ``pip install -r requirements/dev.txt``._
