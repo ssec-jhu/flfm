@@ -38,7 +38,7 @@ FROM ubuntu/jre:21-24.04_stable
 WORKDIR /
 COPY --from=java_builder /flfm/target/flfm-0.1-jar-with-dependencies.jar /flfm/
 COPY --from=py_builder /data/model.pt /data/
-COPY .flfm/tests/data/yale/*.tif /data/
+COPY ./flfm/tests/data/yale/*.tif /data/
 # canonical recommends the below command because it uses pebble,
 # but that throws the following error:
 # Error: Unable to access jarfile flfm-0.1-jar-with-dependencies.jar

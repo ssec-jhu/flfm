@@ -74,7 +74,7 @@ Follow the above [Build with Python ecosystem instructions](#with-python-ecosyst
 
 Using the command line interface (i.e., from a terminal prompt):
 ```term
-python flfm/cli.py flfm/tests/data/yale/light_field_image.tif flfm/tests/data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
+python flfm/cli.py main flfm/tests/data/yale/light_field_image.tif flfm/tests/data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 ```
 
 _NOTE: The above data files are only present when cloning the repo and not when pip installing the package.
