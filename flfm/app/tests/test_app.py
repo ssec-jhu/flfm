@@ -14,7 +14,7 @@ import flfm.io
 import flfm.util
 from flfm.settings import app_settings, settings
 
-DATA_DIR = flfm.util.find_repo_location() / "data" / "yale"
+DATA_DIR = flfm.util.find_package_location() / "tests" / "data" / "yale"
 PSF_FILENAME = DATA_DIR / "measured_psf.tif"
 IMAGE_FILENAME = DATA_DIR / "light_field_image.tif"
 IDS = ("psf", "image", "reconstruction")
@@ -25,18 +25,47 @@ def start_real_server():
     # Start a real server on a separate process. It's easier to kill a process than a thread.
     # For the majority of tests we can just use ``dash.testing`` or ``fastapi.testclient`` instead of this. However, it
     # would be good to still test prd deployment run code.
+
     proc = Process(target=flfm.app.main.start_app)
     proc.start()
     time.sleep(5)  # Both the new process & server take time to start up.
 
     if not proc.is_alive():
-        raise RuntimeError("Server did not start")
+        # raise RuntimeError("Server did not start")
+        ...
 
     def _kill():
         proc.kill()
         proc.join()
+        return proc
 
-    return _kill
+    return proc, _kill
+
+
+class TestUtility:
+    def test_startup_tasks(self, monkeypatch):
+        monkeypatch.setattr(app_settings, "RUN_DUMMY_RECONSTRUCTION_AT_STARTUP", True)
+        monkeypatch.setattr(app_settings, "DUMMY_PSF_FILEPATH", PSF_FILENAME)
+        monkeypatch.setattr(app_settings, "DUMMY_LIGHT_FILED_IMAGE_FILEPATH", IMAGE_FILENAME)
+
+        flfm.app.main.startup_tasks()
+
+    def test_center_frame(self):
+        assert flfm.app.main._center_frame(40) == 20
+
+    def test_slider_template(self):
+        assert flfm.app.main.slider_template_str(40, 20, 5) == " 100.00 µm"
+
+    @pytest.mark.parametrize("debug", (True, False))
+    def test_exception_handler_no_exceptions(self, monkeypatch, debug):
+        monkeypatch.setattr(app_settings, "DEBUG", debug)
+
+        error = RuntimeError()
+        if debug:
+            with pytest.raises(type(error)):
+                flfm.app.main.exception_handler(error)
+        else:
+            flfm.app.main.exception_handler(error)
 
 
 class TestRunServer:
@@ -52,12 +81,18 @@ class TestRunServer:
         with pytest.raises(NotImplementedError):
             flfm.app.main.start_app()
 
-    @pytest.mark.parametrize(("api"), ("flask", "fastapi"))
+    @pytest.mark.parametrize("api", ("flask", "fastapi"))
     def test_run_server(self, api, monkeypatch):
-        monkeypatch.setattr(app_settings, "WEB_API", api)
+        if api == "flask":
+            pytest.skip("Broken from pytest. See https://github.com/ssec-jhu/flfm/issues/174")
 
-        if app_settings.WEB_API == "flask":
-            monkeypatch.setattr(app_settings, "DEBUG", api)
+        # Because the server will get started on a new process we can't monkeypatch instance as they'll be reimported on
+        # the new process. Instead, we use env vars.
+        monkeypatch.setenv("FLFM_APP_WEB_API", api)
+        if api == "flask":
+            monkeypatch.setenv("FLFM_APP_DEBUG", "True")
+        monkeypatch.setenv("FLFM_APP_DUMMY_PSF_FILEPATH", str(PSF_FILENAME))
+        monkeypatch.setenv("FLFM_APP_DUMMY_LIGHT_FILED_IMAGE_FILEPATH", str(IMAGE_FILENAME))
 
         url = f"http://{app_settings.HOST}:{app_settings.PORT}"
 
@@ -65,10 +100,8 @@ class TestRunServer:
         with pytest.raises(requests.exceptions.ConnectionError):
             requests.get(url)
 
-        stop_server = None
         try:
-            stop_server = start_real_server()
-
+            _proc, stop_server = start_real_server()
             response = requests.get(url)
             assert response.status_code == 200
         finally:

@@ -59,9 +59,8 @@ def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_CO
 def run_dummy_reconstruction(*args, **kwargs):
     """Run a dummy reconstruction to get any jax/pytorch compilation overhead out of the way."""
     logger.info("Running dummy reconstruction...")
-    data_dir = flfm.util.find_repo_location() / "data" / "yale"
-    psf = flfm_io.open(data_dir / "measured_psf.tif")
-    light_field_image = flfm_io.open(data_dir / "light_field_image.tif")
+    psf = flfm_io.open(app_settings.DUMMY_PSF_FILEPATH)
+    light_field_image = flfm_io.open(app_settings.DUMMY_LIGHT_FILED_IMAGE_FILEPATH)
     reconstruction = flfm_restoration.richardson_lucy(light_field_image, psf, *args, **kwargs)
     logger.info("Running dummy reconstruction... COMPLETED.")
     return reconstruction
