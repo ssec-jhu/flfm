@@ -74,45 +74,39 @@ Follow the above [Build with Python ecosystem instructions](#with-python-ecosyst
 
 Using the command line interface (i.e., from a terminal prompt):
 ```term
-python flfm/cli.py main flfm/tests/data/yale/light_field_image.tif flfm/tests/data/yale/measured_psf.tif reconstructed_image.tiff --lens_radius=230 --lens_center="(1000,980)" --backend=torch
+python flfm/cli.py main flfm/tests/data/yale/light_field_image.tif flfm/tests/data/yale/measured_psf.tif reconstructed_image.tiff --normalize_psf=True --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 ```
 
 _NOTE: The above data files are only present when cloning the repo and not when pip installing the package.
 
 Within a Python session or Jupyter notebook:
 ```python
-backend = "torch"  # "jax"
-
-from functools import partial
-
-if backend == "torch":
-    import torch
-    psf_sum = partial(torch.sum, dim=(1, 2), keepdim=True)
-    import flfm.pytorch_io as flfm_io
-    import flfm.pytorch_restoration as flfm_restoration
-else:
-    import jax.numpy as jnp
-    psf_sum = partial(jnp.sum, axis=(1, 2), keepdims=True)
-    import flfm.io as flfm_io
-    import flfm.restoration as flfm_restoration
-
 import flfm.util
+from flfm.backends import reload_backend
+
+# The following can be pre-set in ``flfm/settings.py`` prior to import, or prior to invoking the notebook when using env vars,
+# e.g., ``FLFM_BACKEND=jax jupyter notebook``. However, to dynamically change the backend the following code snippet
+# can be used.
+reload_backend("jax")  # or "torch"
+
+import flfm.io
+import flfm.restoration
 
 # Read in images. NOTE: These data files are only present when cloning the repo and not when pip installing the package.
-image = flfm_io.open(flfm.util.find_package_location()  / "tests/data/yale/light_field_image.tif")
-psf = flfm_io.open(flfm.util.find_package_location()  / "tests/data/yale/measured_psf.tif")
+image = flfm.io.open(flfm.util.find_package_location()  / "tests" / "data" / "yale" / "light_field_image.tif")
+psf = flfm.io.open(flfm.util.find_package_location()  / "tests" / "data" / "yale" / "measured_psf.tif")
 
 # Normalize PSF.
-psf_norm = psf / psf_sum(psf)
+psf_norm = psf / flfm.restoration.sum(psf)
 
 # Compute reconstruction.
-reconstruction = flfm_restoration.richardson_lucy(image, psf_norm)
+reconstruction = flfm.restoration.reconstruct(image, psf_norm)
 
-# Clip image to view only central lens perspective.
+# Clip image to view only the central lens perspective.
 cropped_reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, center=(1000, 980), radius=230)
 
 # Save cropped reconstruction to file.
-flfm_io.save("reconstructed_image.tif", cropped_reconstruction)
+flfm.io.save("reconstructed_image.tif", cropped_reconstruction)
 ```
 
 # Starting the UI app

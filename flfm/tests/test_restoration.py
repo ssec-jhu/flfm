@@ -1,23 +1,34 @@
+import numpy as np
+import pytest
+
 import flfm.io
-import flfm.pytorch_io
-import flfm.pytorch_restoration
 import flfm.restoration
 import flfm.util
+from flfm.backend import reload_backend
+from flfm.settings import settings
 
-data_dir = flfm.util.find_package_location() / "tests" / "data" / "yale"
-input_filename = data_dir / "light_field_image.tif"
-psf_filename = data_dir / "measured_psf.tif"
+DATA_DIR = flfm.util.find_package_location() / "tests" / "data" / "yale"
+IMAGE_FILENAME = DATA_DIR / "light_field_image.tif"
+PSF_FILENAME = DATA_DIR / "measured_psf.tif"
+RECONSTRUCTION_FILENAME = DATA_DIR / ".." / "ssec" / "reconstruction.tif"
 
 
 class TestRichardsonLucy:
-    def test_2d_image(self):
-        image = flfm.io.open(input_filename)
-        psf = flfm.io.open(psf_filename)
-        recon = flfm.restoration.richardson_lucy(image, psf[21])
-        assert recon.shape == image.shape
+    @pytest.mark.parametrize("backend", ("torch",))
+    def test_2d_image(self, monkeypatch, backend):
+        monkeypatch.setattr(settings, "BACKEND", backend)
+        reload_backend(backend)
 
-    def test_2d_image_pytorch(self):
-        image = flfm.pytorch_io.open(input_filename)
-        psf = flfm.pytorch_io.open(psf_filename)
-        recon = flfm.pytorch_restoration.richardson_lucy(image, psf[21])
-        assert recon.shape == image.shape
+        image = flfm.io.open(IMAGE_FILENAME)
+        psf = flfm.io.open(PSF_FILENAME)
+        psf = psf / flfm.restoration.sum(psf)
+
+        reconstruction = flfm.restoration.reconstruct(image, psf)
+        assert reconstruction.shape == psf.shape
+
+        cropped_recon = flfm.util.crop_and_apply_circle_mask(
+            reconstruction,
+            center=(settings.DEFAULT_CENTER_X, settings.DEFAULT_CENTER_Y),
+            radius=settings.DEFAULT_RADIUS,
+        )
+        assert np.allclose(cropped_recon, flfm.io.open(RECONSTRUCTION_FILENAME))
