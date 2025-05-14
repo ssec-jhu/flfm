@@ -1,7 +1,6 @@
 import base64
 import io
 import logging
-from functools import partial
 
 import dash_bootstrap_components as dbc
 import plotly.express as px
@@ -9,26 +8,10 @@ from dash import ALL, MATCH, Dash, Input, Output, State, callback, dcc, html, no
 from fastapi import FastAPI
 from numpy.typing import ArrayLike
 
+import flfm.io
+import flfm.restoration
 import flfm.util
 from flfm.settings import app_settings, settings
-
-# TODO: Refactor this to some __init__.py. See https://github.com/ssec-jhu/flfm/issues/146.
-match settings.BACKEND:
-    case "torch":
-        import torch
-
-        psf_sum = partial(torch.sum, dim=(1, 2), keepdim=True)
-        import flfm.pytorch_io as flfm_io
-        import flfm.pytorch_restoration as flfm_restoration
-    case "jax":
-        import jax.numpy as jnp
-
-        psf_sum = partial(jnp.sum, axis=(1, 2), keepdims=True)
-        import flfm.io as flfm_io
-        import flfm.restoration as flfm_restoration
-    case _:
-        raise NotImplementedError(f"Backend {settings.BACKEND} not implemented.")
-
 
 flfm.util.setup_logging(level=settings.LOG_LEVEL, format=settings.LOG_FORMAT)
 logger = logging.getLogger(__name__)
@@ -59,16 +42,16 @@ def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_CO
 def run_dummy_reconstruction(*args, **kwargs):
     """Run a dummy reconstruction to get any jax/pytorch compilation overhead out of the way."""
     logger.info("Running dummy reconstruction...")
-    psf = flfm_io.open(app_settings.DUMMY_PSF_FILEPATH)
-    light_field_image = flfm_io.open(app_settings.DUMMY_LIGHT_FILED_IMAGE_FILEPATH)
-    reconstruction = flfm_restoration.richardson_lucy(light_field_image, psf, *args, **kwargs)
+    psf = flfm.io.open(app_settings.DUMMY_PSF_FILEPATH)
+    light_field_image = flfm.io.open(app_settings.DUMMY_LIGHT_FILED_IMAGE_FILEPATH)
+    reconstruction = flfm.restoration.reconstruct(light_field_image, psf, *args, **kwargs)
     logger.info("Running dummy reconstruction... COMPLETED.")
     return reconstruction
 
 
 def startup_tasks():
     if app_settings.RUN_DUMMY_RECONSTRUCTION_AT_STARTUP:
-        run_dummy_reconstruction(num_iter=app_settings.STARTUP_DUMMY_RECONSTRUCTION_N_ITERS)
+        run_dummy_reconstruction(recon_kwargs=dict(num_iter=app_settings.STARTUP_DUMMY_RECONSTRUCTION_N_ITERS))
 
 
 match app_settings.WEB_API:
@@ -367,7 +350,7 @@ def upload_file(contents: str, filename: str):
         _content_type, content_string = contents.split(",", maxsplit=1)
         decoded = base64.b64decode(content_string)
         bytestream = io.BytesIO(decoded)
-        data = flfm_io.open(bytestream)
+        data = flfm.io.open(bytestream)
         logger.info(f"Uploading {filename} completed.")
         return data
 
@@ -391,8 +374,11 @@ def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radi
         raise no_update
 
     id = "reconstruction"
-    image_data["uncropped_reconstruction"] = flfm_restoration.richardson_lucy(
-        image_data["image"], image_data["psf"], num_iter=rl_iters
+    image_data["uncropped_reconstruction"] = flfm.restoration.reconstruct(
+        image_data["image"],
+        image_data["psf"],
+        recon_kwargs=dict(normalize_psf=False, num_iter=rl_iters),
+        crop_kwargs=None,
     )
     image_data[id] = flfm.util.crop_and_apply_circle_mask(
         image_data["uncropped_reconstruction"],
@@ -418,7 +404,7 @@ def normalize_psf(n_clicks: int, frame: int, color_scale: str):
         return no_update
 
     id = "psf"
-    image_data[id] = image_data[id] / psf_sum(image_data[id])
+    image_data[id] = image_data[id] / flfm.restoration.sum(image_data[id])
     fig = plot_image(image_data[id][frame, :, :], color_scale=color_scale)
     return fig, True
 

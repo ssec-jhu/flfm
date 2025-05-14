@@ -111,10 +111,10 @@ class TestRunServer:
 
 @pytest.fixture
 def image_data():
-    flfm.app.main.image_data["psf"] = flfm.app.main.flfm_io.open(PSF_FILENAME)
-    flfm.app.main.image_data["image"] = flfm.app.main.flfm_io.open(IMAGE_FILENAME)
-    flfm.app.main.image_data["uncropped_reconstruction"] = flfm.app.main.flfm_io.open(IMAGE_FILENAME)  # Spoof.
-    flfm.app.main.image_data["reconstruction"] = flfm.app.main.flfm_io.open(IMAGE_FILENAME)  # Spoof.
+    flfm.app.main.image_data["psf"] = flfm.app.main.flfm.io.open(PSF_FILENAME)
+    flfm.app.main.image_data["image"] = flfm.app.main.flfm.io.open(IMAGE_FILENAME)
+    flfm.app.main.image_data["uncropped_reconstruction"] = flfm.app.main.flfm.io.open(IMAGE_FILENAME)  # Spoof.
+    flfm.app.main.image_data["reconstruction"] = flfm.app.main.flfm.io.open(IMAGE_FILENAME)  # Spoof.
 
     yield
 
