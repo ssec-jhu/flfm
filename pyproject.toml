@@ -14,7 +14,7 @@ dependencies = [
     "distributed",
     "fire",
     "jax",
-    "numpy<2.2.0",
+    "numpy<2.3.0",
     "pillow",
     "pydantic-settings",
     "torch",

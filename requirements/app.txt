@@ -3,4 +3,4 @@ a2wsgi==1.10.8
 dash==3.0.4
 dash-bootstrap-components==2.0.0
 fastapi==0.115.12
-uvicorn==0.34.0
+uvicorn==0.34.3
