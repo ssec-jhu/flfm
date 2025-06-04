@@ -2,10 +2,10 @@ import cProfile
 import os
 import subprocess
 from pathlib import Path
-from typing import Protocol
 
 import fire
 import memray
+import torch
 
 from flfm import cli
 
@@ -65,6 +65,35 @@ class NsysProfiler(Profiler):
         os.remove(f"{self._fname}.nsys-rep")
 
 
+class TorchProfiler(Profiler):
+    def __init__(self, fname: str | Path) -> None:
+        super().__init__(fname)
+        self._profiler = None
+
+    def __enter__(self) -> None:
+        self._profiler = torch.profiler.profile(
+            activities=[
+                # torch.profiler.ProfilerActivity.CPU,
+                torch.profiler.ProfilerActivity.CUDA,
+            ],
+            on_trace_ready=torch.profiler.tensorboard_trace_handler(str(self._fname)),
+            record_shapes=True,
+            with_stack=True,
+            profile_memory=True,
+        )
+        self._profiler.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self._profiler.__exit__(exc_type, exc_value, traceback)
+        # The CPU/CUDA  timings are embedded in the string in the caall below:
+        # self._profiler.key_averages().table()
+        # The are the last part od the string and look like the following:
+        # Self CPU time total: 919.879ms
+        # Self CUDA time total: 760.885ms
+        # self._profiler.export_chrome_trace(f"{self._fname}.json")
+
+
 def resolve_profiler(profiler_name: str, output_fname: str | Path) -> Profiler:
     match profiler_name:
         case "cProfile":
@@ -73,6 +102,8 @@ def resolve_profiler(profiler_name: str, output_fname: str | Path) -> Profiler:
             return NsysProfiler(output_fname)
         case "memray":
             return memray.Tracker(output_fname)
+        case "torch":
+            return TorchProfiler(output_fname)
         case _:
             raise ValueError(f"Unknown profiler: {profiler_name}")
 
@@ -90,12 +121,14 @@ def run(
     img = io.open(img_path)
     psf = io.open(psf_path)
 
-    with resolve_profiler(profiler_name, out_path) as profiler:
+    with resolve_profiler(profiler_name, out_path):
         _ = restoration.richardson_lucy(
             img,
             psf,
             num_iter=10,
         )
+        if backend_name == "torch":
+            torch.cuda.synchronize()
 
 
 if __name__ == "__main__":
