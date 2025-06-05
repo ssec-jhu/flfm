@@ -19,11 +19,15 @@ rm -r ./perf/jax_gpu_mem.prof
 # --profiler_name "cProfile" \
 # --out_path "./perf/jax_gpu.prof" \
 
-python -m perf.run \
---backend_name "torch" \
---profiler_name "torch" \
---out_path "./perf/torch_gpu.prof" \
+nsys launch python -m perf.run \
+--backend_name "jax" \
+--profiler_name "nsys" \
+--out_path "./perf/jax_gpu.prof" \
 
+# python -m perf.run \
+# --backend_name "torch" \
+# --profiler_name "torch" \
+# --out_path "./perf/torch_gpu.prof" \
 
 
 export CUDA_VISIBLE_DEVICES=""

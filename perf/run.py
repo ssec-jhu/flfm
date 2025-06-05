@@ -42,6 +42,8 @@ class NsysProfiler(Profiler):
 
     def __enter__(self) -> None:
         # docs here:
+
+        print("writing to", self._fname + ".nsys-rep")
         # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#cli-start-command-switch-options
         subprocess.run(
             [
@@ -49,8 +51,6 @@ class NsysProfiler(Profiler):
                 "start",
                 "--force-overwrite=true",
                 f"--output={self._fname}.nsys-rep",
-                "--trace=cuda,osrt",
-                "",
             ]
         )
         return self
@@ -58,10 +58,26 @@ class NsysProfiler(Profiler):
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         # docs here:
         # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#cli-stop-command-switch-options
-        subprocess.run(["nsys", "stop"])
+        if subprocess.run(["nsys", "stop"]).returncode != 0:
+            raise RuntimeError("Nsight Systems profiler did not stop correctly.")
+
         # docs here:
         # https://docs.nvidia.com/nsight-systems/UserGuide/index.html#cli-stats-command-switch-options
-        subprocess.run(["nsys", "report", "--report=csv", "--output", str(self._fname), f"{self._fname}.nsys-rep"])
+        if (
+            subprocess.run(
+                [
+                    "nsys",
+                    "stats",
+                    "--format=csv",
+                    "--force-export=true",
+                    "--output",
+                    str(self._fname) + ".csv",
+                    f"{self._fname}.nsys-rep",
+                ]
+            ).returncode
+            != 0
+        ):
+            raise RuntimeError("Nsight Systems profiler did not generate stats correctly.")
         os.remove(f"{self._fname}.nsys-rep")
 
 
@@ -87,7 +103,7 @@ class TorchProfiler(Profiler):
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self._profiler.__exit__(exc_type, exc_value, traceback)
         # The CPU/CUDA  timings are embedded in the string in the caall below:
-        # self._profiler.key_averages().table()
+        print(self._profiler.key_averages().table())
         # The are the last part od the string and look like the following:
         # Self CPU time total: 919.879ms
         # Self CUDA time total: 760.885ms
