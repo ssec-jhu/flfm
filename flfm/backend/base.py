@@ -53,7 +53,22 @@ class BaseRestoration(Singleton, ABC):
     ) -> None: ...
 
     @staticmethod
-    def to_device(data, device: str | Any = None):
+    @abstractmethod
+    def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike: ...
+
+    def richardson_lucy_core(
+        self,
+        image: ArrayLike,  # [1, n, n]
+        psf: ArrayLike,  # [k, n, n]
+        num_iter: int = settings.DEFAULT_RL_ITERS,
+    ) -> ArrayLike:
+        psf_fft = self.rfft2(psf, axis=(-2, -1))  # [k, n, n/2+1]
+        psft_fft = self.rfft2(self.flip(psf, axis=(-2, -1)))  # [k, n, n/2+1]
+        data = self.ones_like(psf) * 0.5  # [k, n, n]
+
+        for _ in range(num_iter):
+            data = self.compute_step(data, image, psf_fft, psft_fft)
+
         return data
 
     def richardson_lucy(
@@ -68,19 +83,14 @@ class BaseRestoration(Singleton, ABC):
         if "clip" in kwargs or "filter_epsilon" in kwargs:
             raise NotImplementedError
 
+        # Copy data to device.
         image = self.to_device(image)
         psf = self.to_device(psf)
 
-        # We may want to make this something the use changes
-        data = self.ones_like(psf) * 0.5  # [k, n, n]
+        # Do Richardson-Lucy deconvolution.
+        data = self.richardson_lucy_core(image, psf, num_iter=num_iter)
 
-        psf_fft = self.rfft2(psf, axis=(-2, -1))  # [k, n, n/2+1]
-        psf_miror = self.flip(psf, axis=(-2, -1))
-        psft_fft = self.rfft2(psf_miror)  # [k, n, n/2+1]
-
-        for _ in range(num_iter):
-            data = self.compute_step(data, image, psf_fft, psft_fft)
-
+        # Copy data from device.
         data = self.to_device(data, "cpu")  # TODO: Is there a use case for this in reconstruct rather than here?
 
         return data
