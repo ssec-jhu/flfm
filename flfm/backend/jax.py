@@ -52,6 +52,12 @@ class JaxRestoration(BaseRestoration):
         return jax.numpy.sum(a, axis=axis, keepdims=keepdims)
 
     @staticmethod
+    def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike:
+        # Jax, to some degree, handles this automatically when jitting. However, we could be explicit and implement
+        # ``jax.Array.to_device()``, however, we can just leave this as a NoOp for now.
+        return data
+
+    @staticmethod
     def export_tf_model(
         out_path: str | Path,
         num_steps: int,

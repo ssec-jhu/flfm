@@ -43,7 +43,7 @@ class TorchRestoration(BaseRestoration):
         return torch.flip(a, *args, dims=axis, **kwargs)
 
     @staticmethod
-    def to_device(data, device: str | Any = None):
+    def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike:
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         return data.to(device)
