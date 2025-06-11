@@ -1,42 +1,57 @@
-"""Deconvolution for FLFM observation reconstruction."""
+"""FLFM observation reconstruction."""
 
-import jax
-import jax.numpy as jnp
+from pathlib import Path
+from typing import Optional
 
+from numpy.typing import ArrayLike
+
+import flfm.util  # noqa:  F401
 from flfm.settings import settings
 
+match settings.BACKEND:
+    case "jax":
+        from flfm.backend.jax import JaxRestoration
 
-@jax.jit
-def compute_step_f(
-    data: jnp.ndarray,  # [k, n, n]
-    image: jnp.ndarray,  # [1, n, n]
-    PSF_fft: jnp.ndarray,  # [k, n, n/2+1]
-    PSFt_fft: jnp.ndarray,  # [k, n, n/2+1]
-) -> jnp.ndarray:
-    """Single step of the multiplicative Richardson-Lucy deconvolution algorithm."""
-    denom = jnp.fft.irfft2(PSF_fft * jnp.fft.rfft2(data)).sum(axis=0, keepdims=True)  # [1, n, n]
-    img_err = image / denom
-    return data * jnp.fft.fftshift(jnp.fft.irfft2(jnp.fft.rfft2(img_err) * PSFt_fft), axes=(-2, -1))  # [k, n, n]
+        Restoration = JaxRestoration()
+        assert Restoration is JaxRestoration()
+    case "torch":
+        from flfm.backend.torch import TorchRestoration
 
-
-def richardson_lucy(
-    image: jnp.ndarray,  # [1, n, n]
-    psf: jnp.ndarray,  # [k, n, n]
-    num_iter: int = settings.DEFAULT_RL_ITERS,
-    **kwargs,
-) -> jnp.ndarray:
-    """Reconstruct the image using the Richardson-Lucy deconvolution method."""
-
-    if "clip" in kwargs or "filter_epsilon" in kwargs:
+        Restoration = TorchRestoration()
+        assert Restoration is TorchRestoration()
+    case _:
         raise NotImplementedError
 
-    # We may want to make this something the use changes
-    data = jnp.ones_like(psf) * 0.5  # [k, n, n]
 
-    psf_fft = jnp.fft.rfft2(psf, axes=(-2, -1))  # [k, n, n/2+1]
-    psft_fft = jnp.fft.rfft2(jnp.flip(psf, axis=(-2, -1)))  # [k, n, n/2+1]
+sum = Restoration.sum
+export_tf_model = Restoration.export_tf_model
 
-    for _ in range(num_iter):
-        data = compute_step_f(data, image, psf_fft, psft_fft).block_until_ready()
 
-    return data
+def reconstruct(
+    image: ArrayLike | str | Path,
+    psf: ArrayLike | str | Path,
+    normalize_psf: bool = False,
+    output_filename: Optional[str | Path] = None,
+    recon_kwargs: Optional[dict] = None,
+    crop_kwargs: Optional[dict] = None,
+) -> ArrayLike:
+    import flfm.io
+
+    if isinstance(image, (str, Path)):
+        image = flfm.io.open(Path(image))
+
+    if isinstance(psf, (str, Path)):
+        psf = flfm.io.open(Path(psf))
+
+    if normalize_psf:
+        psf = psf / sum(psf)
+
+    reconstruction = Restoration.richardson_lucy(image, psf, **(recon_kwargs or {}))
+
+    if isinstance(crop_kwargs, dict):
+        reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, **crop_kwargs)
+
+    if output_filename:
+        flfm.io.save(output_filename, reconstruction)
+
+    return reconstruction
