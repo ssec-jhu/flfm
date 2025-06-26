@@ -1,0 +1,37 @@
+[
+    {
+        "_comment": ["Minimal annotations example",
+                     "Note that module's name must include parent packages"],
+
+        "module": "torch.nn.functional",
+        "functions": ["sigmoid"]
+    },
+
+    {
+        "_comment": "Set custom attributes - domain, category, color",
+
+        "domain": "My Domain",
+        "category": "My Category",
+        "color": "0x008000",
+        "module": "torch.nn.functional",
+        "functions": ["sigmoid"]
+    },
+
+    {
+        "_comment": [
+            "More complex example:",
+                "- Attributes can be overridden per function",
+                "- Methods can also be annotated (Adadelta.step)"
+        ],
+
+        "module": "torch.nn.functional",
+        "domain": "More complex example",
+        "category": "functional",
+        "color": "0x008000",
+        "functions": [
+            "sigmoid",
+            {"function": "log_softmax", "color": "0xFF0000"},
+            {"function": "Adadelta.step", "color": "0x800080", "module": "torch.optim.adadelta", "domain": "optim"}
+        ]
+    }
+]
