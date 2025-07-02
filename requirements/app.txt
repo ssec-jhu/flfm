@@ -1,6 +1,6 @@
 -r prd.txt
-a2wsgi==1.10.8
-dash==3.0.4
-dash-bootstrap-components==2.0.0
-fastapi==0.115.12
-uvicorn==0.34.3
+a2wsgi==1.10.10
+dash==3.1.1
+dash-bootstrap-components==2.0.3
+fastapi==0.115.14
+uvicorn==0.35.0
