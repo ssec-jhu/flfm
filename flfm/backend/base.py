@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from numpy.typing import ArrayLike
 
@@ -29,7 +29,7 @@ class BaseRestoration(Singleton, ABC):
 
     @staticmethod
     @abstractmethod
-    def rfft2(a: ArrayLike, *args, axis: Any = (-2, -1), **kargs) -> ArrayLike: ...
+    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kargs) -> ArrayLike: ...
 
     @staticmethod
     @abstractmethod
@@ -37,15 +37,15 @@ class BaseRestoration(Singleton, ABC):
 
     @staticmethod
     @abstractmethod
-    def flip(a: ArrayLike, *args, axis: Any = None, **kwargs) -> ArrayLike: ...
+    def flip(a: ArrayLike, *args, axis: Sequence[int] = None, **kwargs) -> ArrayLike: ...
 
     @staticmethod
     @abstractmethod
-    def sum(a: ArrayLike, *args, axis: Any = (1, 2), keepdims: bool = True, **kwargs): ...
+    def sum(a: ArrayLike, *args, axis: Sequence[int] = (1, 2), keepdims: bool = True, **kwargs): ...
 
     @staticmethod
     @abstractmethod
-    def export_tf_model(
+    def export_model(
         out_path: str | Path,
         num_steps: int,
         img_size: tuple[int, int, int],

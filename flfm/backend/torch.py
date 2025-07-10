@@ -53,7 +53,7 @@ class TorchRestoration(BaseRestoration):
         return torch.sum(a, dim=axis, keepdim=keepdims)
 
     @staticmethod
-    def export_tf_model(
+    def export_model(
         out_path: str | Path,
         num_steps: int,
         img_size: tuple[int, int, int],

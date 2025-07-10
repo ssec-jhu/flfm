@@ -1,7 +1,7 @@
 """FLFM observation reconstruction using JAX."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import jax
 import numpy as np
@@ -36,7 +36,7 @@ class JaxRestoration(BaseRestoration):
         return self.compiled_rl_step(*args, **kwargs).block_until_ready()
 
     @staticmethod
-    def rfft2(a: ArrayLike, *args, axis: Any = (-2, -1), **kwargs):
+    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kwargs):
         return jax.numpy.fft.rfft2(a, *args, axes=axis, **kwargs)
 
     @staticmethod
@@ -44,11 +44,11 @@ class JaxRestoration(BaseRestoration):
         return jax.numpy.ones_like(a, *args, **kwargs)
 
     @staticmethod
-    def flip(a: ArrayLike, *args, axis: Any = None, **kwargs) -> ArrayLike:
+    def flip(a: ArrayLike, *args, axis: Sequence[int] = None, **kwargs) -> ArrayLike:
         return jax.numpy.flip(a, *args, axis=axis, **kwargs)
 
     @staticmethod
-    def sum(a: ArrayLike, *args, axis: Any = (1, 2), keepdims: bool = True, **kwargs):
+    def sum(a: ArrayLike, *args, axis: Sequence[int] = (1, 2), keepdims: bool = True, **kwargs):
         return jax.numpy.sum(a, axis=axis, keepdims=keepdims)
 
     @staticmethod
@@ -58,7 +58,7 @@ class JaxRestoration(BaseRestoration):
         return data
 
     @staticmethod
-    def export_tf_model(
+    def export_model(
         out_path: str | Path,
         num_steps: int,
         img_size: tuple[int, int, int],

@@ -26,14 +26,14 @@ class TestBackendReload:
                 assert flfm.io.save is flfm.backend.jax.JaxIO().save
                 assert flfm.restoration.Restoration is flfm.backend.jax.JaxRestoration()
                 assert flfm.restoration.sum is flfm.backend.jax.JaxRestoration().sum
-                assert flfm.restoration.export_tf_model is flfm.backend.jax.JaxRestoration().export_tf_model
+                assert flfm.restoration.export_model is flfm.backend.jax.JaxRestoration().export_model
             case "torch":
                 assert flfm.io.IO is flfm.backend.torch.TorchIO()
                 assert flfm.io.open is flfm.backend.torch.TorchIO().open
                 assert flfm.io.save is flfm.backend.torch.TorchIO().save
                 assert flfm.restoration.Restoration is flfm.backend.torch.TorchRestoration()
                 assert flfm.restoration.sum is flfm.backend.torch.TorchRestoration().sum
-                assert flfm.restoration.export_tf_model is flfm.backend.torch.TorchRestoration().export_tf_model
+                assert flfm.restoration.export_model is flfm.backend.torch.TorchRestoration().export_model
             case _:
                 raise NotImplementedError
 

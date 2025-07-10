@@ -24,7 +24,7 @@ match settings.BACKEND:
 
 
 sum = Restoration.sum
-export_tf_model = Restoration.export_tf_model
+export_model = Restoration.export_model
 
 
 def reconstruct(
@@ -46,7 +46,10 @@ def reconstruct(
     if normalize_psf:
         psf = psf / sum(psf)
 
-    reconstruction = Restoration.richardson_lucy(image, psf, **(recon_kwargs or {}))
+    if recon_kwargs is None:
+        recon_kwargs = {}
+
+    reconstruction = Restoration.richardson_lucy(image, psf, **recon_kwargs)
 
     if isinstance(crop_kwargs, dict):
         reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, **crop_kwargs)

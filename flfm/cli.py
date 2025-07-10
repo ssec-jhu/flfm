@@ -46,9 +46,10 @@ def main(
         lens_center: Center of the lens to apply the circular mask to
         backend: Whether to use JAX or Torch. Default is "torch".
     """
-    import_backend(backend)
-    import flfm.io  # Stop linter/IDE from complaining.
-    import flfm.restoration  # Stop linter/IDE from complaining.
+    import_backend(backend)  # Reimports ``flfm.io`` & ``flfm.restoration`` to switch backend.
+    # Even with the above reimport, still directly import for better readability and to also stop linter complaints.
+    import flfm.io
+    import flfm.restoration
 
     img = flfm.io.open(img)
     psf = flfm.io.open(psf)
@@ -90,7 +91,7 @@ def export(
     import_backend(backend)
     import flfm.restoration  # Stop linter/IDE from complaining.
 
-    flfm.restoration.export_tf_model(
+    flfm.restoration.export_model(
         Path(out),
         int(n_steps),
         img_size=img_size,
