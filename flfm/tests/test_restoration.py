@@ -14,7 +14,13 @@ RECONSTRUCTION_FILENAME = DATA_DIR / ".." / "ssec" / "reconstruction.tif"
 
 
 class TestRichardsonLucy:
-    @pytest.mark.parametrize("backend", ("torch",))
+    @pytest.mark.parametrize(
+        "backend",
+        (
+            "jax",
+            "torch",
+        ),
+    )
     def test_2d_image(self, monkeypatch, backend):
         monkeypatch.setattr(settings, "BACKEND", backend)
         reload_backend(backend)
