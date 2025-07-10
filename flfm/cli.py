@@ -3,46 +3,25 @@
 import io
 import warnings
 from pathlib import Path
-from types import ModuleType
 from typing import Literal
 
 import fire
 
-import flfm.util
+import flfm.util  # noqa:  F401
+from flfm.backend import reload_backend
 from flfm.settings import settings
 
 ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
 BACKEND_SUCCESS = "FLFM {backend} loaded ✅"
 
-try:
-    import flfm.io
-    import flfm.restoration
-except ImportError:
-    warnings.warn(ERR_BACKEND_MSSG.format(backend="jax"), ImportWarning)
-else:
-    print(BACKEND_SUCCESS.format(backend="jax"))
 
-try:
-    import flfm.pytorch_io
-    import flfm.pytorch_restoration
-except ImportError:
-    warnings.warn(ERR_BACKEND_MSSG.format(backend="torch"), ImportWarning)
-else:
-    print(BACKEND_SUCCESS.format(backend="torch"))
-
-
-def _validate_backend(backend: Literal["jax", "torch"]) -> tuple[ModuleType, ModuleType]:
-    """Validate the backend and return the appropriate modules."""
-    restoration, io = None, None
-    match backend:
-        case "torch":
-            return flfm.pytorch_restoration, flfm.pytorch_io
-        case "jax":
-            return flfm.restoration, flfm.io
-        case _:
-            raise ValueError(f"{backend} is not supported.")
-
-    return restoration, io
+def import_backend(backend: str):
+    try:
+        reload_backend(backend)
+    except ImportError:
+        warnings.warn(ERR_BACKEND_MSSG.format(backend=backend), ImportWarning)
+    else:
+        print(BACKEND_SUCCESS.format(backend=backend))
 
 
 def main(
@@ -51,6 +30,7 @@ def main(
     out: Path | str | io.BytesIO,
     lens_radius: int,
     num_iters: int = 10,
+    normalize_psf: bool = False,
     lens_center: tuple[int, int] | None = None,
     backend: Literal["jax", "torch"] = settings.BACKEND,
 ) -> None:
@@ -62,15 +42,22 @@ def main(
         out: Path to the output file.
         lens_radius: Radius of the lens mask to apply to the output
         num_iters: Number of iterations to run, default is 10.
+        normalize_psf: Whether to normalize the PSF. Default is False.
         lens_center: Center of the lens to apply the circular mask to
         backend: Whether to use JAX or Torch. Default is "torch".
     """
-    backend_restoration, backend_io = _validate_backend(backend)
+    import_backend(backend)  # Reimports ``flfm.io`` & ``flfm.restoration`` to switch backend.
+    # Even with the above reimport, still directly import for better readability and to also stop linter complaints.
+    import flfm.io
+    import flfm.restoration
 
-    img = backend_io.open(img)
-    psf = backend_io.open(psf)
+    img = flfm.io.open(img)
+    psf = flfm.io.open(psf)
 
-    reconstructed = backend_restoration.richardson_lucy(img, psf, num_iter=num_iters)
+    if normalize_psf:
+        psf = psf / flfm.restoration.sum(psf)
+
+    reconstructed = flfm.restoration.reconstruct(img, psf, recon_kwargs=dict(num_iter=num_iters))
 
     lens_center = lens_center or (img.shape[-2] // 2, img.shape[-1] // 2)
     cropped = flfm.util.crop_and_apply_circle_mask(
@@ -101,9 +88,10 @@ def export(
     Returns:
         None
     """
-    _, backend_io = _validate_backend(backend)
+    import_backend(backend)
+    import flfm.restoration  # Stop linter/IDE from complaining.
 
-    backend_io.export_model(
+    flfm.restoration.export_model(
         Path(out),
         int(n_steps),
         img_size=img_size,

@@ -1,51 +1,11 @@
 import multiprocessing
-from functools import partial
 from pathlib import Path
 
 from dask.distributed import LocalCluster
 
+import flfm.restoration
 import flfm.util
 from flfm.settings import settings
-
-# TODO: Refactor this to some __init__.py. See https://github.com/ssec-jhu/flfm/issues/146.
-match settings.BACKEND:
-    case "torch":
-        import torch
-
-        psf_sum = partial(torch.sum, dim=(1, 2), keepdim=True)
-        import flfm.pytorch_io as flfm_io
-        import flfm.pytorch_restoration as flfm_restoration
-    case "jax":
-        import jax.numpy as jnp
-
-        psf_sum = partial(jnp.sum, axis=(1, 2), keepdims=True)
-        import flfm.io as flfm_io
-        import flfm.restoration as flfm_restoration
-    case _:
-        raise NotImplementedError(f"Backend {settings.BACKEND} not implemented.")
-
-
-def do_reconstruction(
-    psf_filename, image_filename, output_filename, normalize_psf, recon_kwargs, crop_kwargs, write=False
-):
-    """Do full reconstruction and save to file."""
-    # TODO: Move this func to same place that wrappers live for #146 & #135.
-
-    # Open PSF image and optionally normalize.
-    psf = flfm_io.open(psf_filename)
-    if normalize_psf:
-        psf = psf / psf_sum(psf)
-
-    # Open light-field image.
-    image = flfm_io.open(image_filename)
-    # Reconstruct.
-    reconstruction = flfm_restoration.richardson_lucy(image, psf, **recon_kwargs)
-    # Crop.
-    cropped_reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, **crop_kwargs)
-    # Save.
-    if write:
-        flfm_io.save(output_filename, cropped_reconstruction)
-    return cropped_reconstruction
 
 
 def batch_reconstruction(
@@ -106,14 +66,13 @@ def batch_reconstruction(
             print(f"({i + 1}/{len(input_filenames)}): Processing '{filename}'...")
             output_filename = output_dir / filename
             future = client.submit(
-                do_reconstruction,
+                flfm.restoration.reconstruct,
                 psf_filename,
                 filename,
-                output_filename,
+                output_filename=output_filename,
                 normalize_psf=normalize_psf,
                 recon_kwargs=recon_kwargs,
                 crop_kwargs=crop_kwargs,
-                write=True,
             )
             futures.append(future)
 
