@@ -1,7 +1,7 @@
 API
 ===
 
-.. autosummary::
-   :toctree: generated
-
-   flfm
+.. automodule:: flfm
+   :members:
+   :undoc-members:
+   :show-inheritance:

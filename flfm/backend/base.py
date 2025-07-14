@@ -1,4 +1,4 @@
-"""FLFM observation reconstruction."""
+"""Base classes for the FLFM backend."""
 
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -10,6 +10,8 @@ from flfm.settings import settings
 
 
 class Singleton:
+    """A singleton class."""
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -19,6 +21,8 @@ class Singleton:
 
 
 class BaseRestoration(Singleton, ABC):
+    """Base class for the restoration backend."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.compiled_rl_step = None
@@ -29,19 +33,27 @@ class BaseRestoration(Singleton, ABC):
 
     @staticmethod
     @abstractmethod
-    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kargs) -> ArrayLike: ...
+    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kargs) -> ArrayLike:
+        """Compute the 2D real-to-complex FFT."""
+        ...
 
     @staticmethod
     @abstractmethod
-    def ones_like(a: ArrayLike, *args, **kwargs) -> ArrayLike: ...
+    def ones_like(a: ArrayLike, *args, **kwargs) -> ArrayLike:
+        """Return an array of ones with the same shape and type as a given array."""
+        ...
 
     @staticmethod
     @abstractmethod
-    def flip(a: ArrayLike, *args, axis: Sequence[int] = None, **kwargs) -> ArrayLike: ...
+    def flip(a: ArrayLike, *args, axis: Sequence[int] = None, **kwargs) -> ArrayLike:
+        """Reverse the order of elements in an array along the given axes."""
+        ...
 
     @staticmethod
     @abstractmethod
-    def sum(a: ArrayLike, *args, axis: Sequence[int] = (1, 2), keepdims: bool = True, **kwargs): ...
+    def sum(a: ArrayLike, *args, axis: Sequence[int] = (1, 2), keepdims: bool = True, **kwargs):
+        """Sum of array elements over a given axis."""
+        ...
 
     @staticmethod
     @abstractmethod
@@ -50,11 +62,15 @@ class BaseRestoration(Singleton, ABC):
         num_steps: int,
         img_size: tuple[int, int, int],
         psf_size: tuple[int, int, int],
-    ) -> None: ...
+    ) -> None:
+        """Export a model for use elsewhere."""
+        ...
 
     @staticmethod
     @abstractmethod
-    def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike: ...
+    def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike:
+        """Move data to a device."""
+        ...
 
     def richardson_lucy_core(
         self,
@@ -62,6 +78,16 @@ class BaseRestoration(Singleton, ABC):
         psf: ArrayLike,  # [k, n, n]
         num_iter: int = settings.DEFAULT_RL_ITERS,
     ) -> ArrayLike:
+        """Core of the Richardson-Lucy deconvolution algorithm.
+
+        Args:
+            image: The image to deconvolve.
+            psf: The point spread function.
+            num_iter: The number of iterations to run.
+
+        Returns:
+            The deconvolved image.
+        """
         psf_fft = self.rfft2(psf, axis=(-2, -1))  # [k, n, n/2+1]
         psft_fft = self.rfft2(self.flip(psf, axis=(-2, -1)))  # [k, n, n/2+1]
         data = self.ones_like(psf) * 0.5  # [k, n, n]
@@ -78,7 +104,17 @@ class BaseRestoration(Singleton, ABC):
         num_iter: int = settings.DEFAULT_RL_ITERS,
         **kwargs,
     ) -> ArrayLike:
-        """Reconstruct the image using the Richardson-Lucy deconvolution method."""
+        """Reconstruct the image using the Richardson-Lucy deconvolution method.
+
+        Args:
+            image: The image to deconvolve.
+            psf: The point spread function.
+            num_iter: The number of iterations to run.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The deconvolved image.
+        """
 
         if "clip" in kwargs or "filter_epsilon" in kwargs:
             raise NotImplementedError
@@ -97,6 +133,8 @@ class BaseRestoration(Singleton, ABC):
 
 
 class BaseIO(Singleton, ABC):
+    """Base class for the IO backend."""
+
     @staticmethod
     @abstractmethod
     def open(filename: str | Path) -> ArrayLike:

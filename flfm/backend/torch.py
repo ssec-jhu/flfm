@@ -1,7 +1,7 @@
 """FLFM observation reconstruction using PyTorch."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 import torch
@@ -17,7 +17,17 @@ def rl_step(
     PSF_fft: torch.Tensor,  # [k, n, n/2+1]
     PSFt_fft: torch.Tensor,  # [k, n, n/2+1]
 ) -> torch.Tensor:
-    """Single step of the multiplicative Richardson-Lucy deconvolution algorithm."""
+    """Single step of the multiplicative Richardson-Lucy deconvolution algorithm.
+
+    Args:
+        data: The current estimate of the deconvolved image.
+        image: The observed image.
+        PSF_fft: The FFT of the point spread function.
+        PSFt_fft: The FFT of the time-reversed point spread function.
+
+    Returns:
+        The next estimate of the deconvolved image.
+    """
     # NOTE: This could use ``TorchRestoration.rfft2``, however, we don't so that we can keep this func
     # independent/static.
     denominator = torch.fft.irfft2(PSF_fft * torch.fft.rfft2(data), dim=(-2, -1)).sum(dim=0, keepdim=True)  # [1, n, n]
@@ -26,30 +36,37 @@ def rl_step(
 
 
 class TorchRestoration(BaseRestoration):
+    """PyTorch implementation of the restoration backend."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.compiled_rl_step = torch.jit.script(rl_step)
 
     @staticmethod
     def rfft2(a: ArrayLike, *args, axis: Any = (-2, -1), **kwargs) -> ArrayLike:
+        """Compute the 2D real-to-complex FFT."""
         return torch.fft.rfft2(a, *args, dim=axis, **kwargs)
 
     @staticmethod
     def ones_like(a: ArrayLike, *args, **kwargs) -> ArrayLike:
+        """Return an array of ones with the same shape and type as a given array."""
         return torch.ones_like(a, *args, **kwargs)
 
     @staticmethod
     def flip(a: ArrayLike, *args, axis: Any = None, **kwargs) -> ArrayLike:
+        """Reverse the order of elements in an array along the given axes."""
         return torch.flip(a, *args, dims=axis, **kwargs)
 
     @staticmethod
     def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike:
+        """Move data to a device."""
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         return data.to(device)
 
     @staticmethod
     def sum(a: ArrayLike, *args, axis: Any = (1, 2), keepdims: bool = True, **kwargs):
+        """Sum of array elements over a given axis."""
         return torch.sum(a, dim=axis, keepdim=keepdims)
 
     @staticmethod
@@ -59,7 +76,11 @@ class TorchRestoration(BaseRestoration):
         img_size: tuple[int, int, int],
         psf_size: tuple[int, int, int],
     ) -> None:
+        """Export a model for use elsewhere."""
+
         class RL(torch.nn.Module):
+            """Richardson-Lucy deconvolution module."""
+
             n_iter: torch.jit.Final[int]
 
             def __init__(self, n_iter: int):
@@ -67,6 +88,7 @@ class TorchRestoration(BaseRestoration):
                 self.n_iter = n_iter
 
             def forward(self, img: torch.Tensor, psf: torch.Tensor) -> torch.Tensor:
+                """Run the deconvolution."""
                 psf_fft = torch.fft.rfft2(psf)  # [k, n, n/2+1]
                 psft_fft = torch.fft.rfft2(torch.flip(psf, (-2, -1)))  # [k, n, n/2+1]
                 data = torch.ones_like(psf) * 0.5  # [k, n, n]
@@ -88,6 +110,8 @@ class TorchRestoration(BaseRestoration):
 
 
 class TorchIO(BaseIO):
+    """PyTorch implementation of the IO backend."""
+
     @staticmethod
     def open(filename: str | Path) -> ArrayLike:
         """Open a file and return it as a numpy array."""

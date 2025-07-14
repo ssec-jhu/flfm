@@ -1,6 +1,9 @@
+"""Main application file for the FLFM Dash app."""
+
 import base64
 import io
 import logging
+from typing import Any
 
 import dash_bootstrap_components as dbc
 import plotly.express as px
@@ -17,7 +20,12 @@ flfm.util.setup_logging(level=settings.LOG_LEVEL, format=settings.LOG_FORMAT)
 logger = logging.getLogger(__name__)
 
 
-def exception_handler(error):
+def exception_handler(error: Exception) -> None:
+    """Handle exceptions in the Dash app.
+
+    Args:
+        error: The exception to handle.
+    """
     if app_settings.DEBUG:
         raise error
     else:
@@ -32,14 +40,25 @@ dash_app = Dash(__name__, external_stylesheets=external_stylesheets, on_error=ex
 dash_server = dash_app.server
 
 
-def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_COLOR_SCALE, **kwargs):
+def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_COLOR_SCALE, **kwargs) -> px.imshow:
+    """Plot an image using plotly.express.
+
+    Args:
+        data: The image data to plot.
+        color_scale: The color scale to use.
+        *args: Additional arguments to pass to `plotly.express.imshow`.
+        **kwargs: Additional keyword arguments to pass to `plotly.express.imshow`.
+
+    Returns:
+        A plotly figure.
+    """
     fig = px.imshow(data, *args, color_continuous_scale=color_scale, **kwargs)
     fig.update_xaxes(showticklabels=app_settings.IMSHOW_SHOW_TICK_LABELS)
     fig.update_yaxes(showticklabels=app_settings.IMSHOW_SHOW_TICK_LABELS)
     return fig
 
 
-def run_dummy_reconstruction(*args, **kwargs):
+def run_dummy_reconstruction(*args, **kwargs) -> ArrayLike:
     """Run a dummy reconstruction to get any jax/pytorch compilation overhead out of the way."""
     logger.info("Running dummy reconstruction...")
     psf = flfm.io.open(app_settings.DUMMY_PSF_FILEPATH)
@@ -49,7 +68,8 @@ def run_dummy_reconstruction(*args, **kwargs):
     return reconstruction
 
 
-def startup_tasks():
+def startup_tasks() -> None:
+    """Run startup tasks for the application."""
     if app_settings.RUN_DUMMY_RECONSTRUCTION_AT_STARTUP:
         run_dummy_reconstruction(recon_kwargs=dict(num_iter=app_settings.STARTUP_DUMMY_RECONSTRUCTION_N_ITERS))
 
@@ -62,6 +82,11 @@ match app_settings.WEB_API:
 
         @asynccontextmanager
         async def lifespan(app: FastAPI):
+            """Context manager for the FastAPI application.
+
+            Args:
+                app: The FastAPI application.
+            """
             # Startup:
             startup_tasks()
             yield
@@ -84,14 +109,17 @@ image_data = dict(psf=None, image=None, reconstruction=None, uncropped_reconstru
 
 
 def _center_frame(n_frames: int) -> int:
+    """Return the center frame of a stack of images."""
     return n_frames // 2
 
 
 def slider_template_str(value: int, center: int, step_size: float, unit: str = app_settings.DEPTH_UNIT) -> str:
+    """Return a template string for the slider tooltip."""
     return f"{(value - center) * step_size: .2f} {unit}"
 
 
-def dash_layout():
+def dash_layout() -> html.Div:
+    """Return the layout for the Dash application."""
     layout = html.Div(
         children=[
             dcc.Store(id=dict(type="n-frames", index="psf"), storage_type="memory", clear_data=True, data=0),
@@ -252,7 +280,7 @@ dash_app.layout = dash_layout
     State(dict(type="upload", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def upload_data(contents: str, filename: str, id: dict[str, str]):
+def upload_data(contents: str, filename: str, id: dict[str, str]) -> tuple[list, int]:
     """Upload data/image files."""
     global image_data
     id = id["index"]
@@ -266,7 +294,7 @@ def upload_data(contents: str, filename: str, id: dict[str, str]):
     Input(dict(type="upload", index="psf"), "last_modified"),
     prevent_initial_call=True,
 )
-def enable_normalization_button(_):
+def enable_normalization_button(_: Any) -> bool:
     """Re-enable normalization button upon new upload."""
     return False
 
@@ -284,7 +312,7 @@ def enable_normalization_button(_):
 )
 def update_image_from_slider(
     value: int, tooltip: dict, n_frames: int, step_size: float, color_scale: str, id: dict[str, str]
-):
+) -> tuple[px.imshow, dict]:
     """Re-plot image based on frame/depth selected from slider."""
     global image_data
     # tooltip.transform (clientside js )would render faster than updating the template in a server side callback,
@@ -303,13 +331,14 @@ def update_image_from_slider(
     State({"type": "n-frames", "index": "psf"}, "data"),
     prevent_initial_call=True,
 )
-def update_slider_tooltip(depth_step_size: float, values: list[int], tooltips: dict, n_frames: int):
+def update_slider_tooltip(depth_step_size: float, values: list[int], tooltips: dict, n_frames: int) -> dict:
+    """Update the slider tooltip when the depth step size changes."""
     for i, value in enumerate(values):
         tooltips[i]["template"] = slider_template_str(value, _center_frame(n_frames), depth_step_size)
     return tooltips
 
 
-def _display_image_with_slider(data: ArrayLike, id: str):
+def _display_image_with_slider(data: ArrayLike, id: str) -> tuple[list, int]:
     """Plot image and display frame/depth slider (where appropriate)."""
     if data is None:
         return no_update
@@ -343,7 +372,7 @@ def _display_image_with_slider(data: ArrayLike, id: str):
     return children, n_frames
 
 
-def upload_file(contents: str, filename: str):
+def upload_file(contents: str, filename: str) -> ArrayLike:
     """Read in data/image files."""
     if contents is not None:
         logger.info(f"Uploading {filename}...")
@@ -364,7 +393,7 @@ def upload_file(contents: str, filename: str):
     State("radius", "value"),
     prevent_initial_call=True,
 )
-def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radius: int):
+def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radius: int) -> list:
     """RUN FLFM reconstruction and return reconstructed image."""
     global image_data
     if n_clicks == 0:
@@ -397,7 +426,7 @@ def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radi
     State(dict(type="color-scale", index="psf"), "value"),
     prevent_initial_call=True,
 )
-def normalize_psf(n_clicks: int, frame: int, color_scale: str):
+def normalize_psf(n_clicks: int, frame: int, color_scale: str) -> tuple[px.imshow, bool]:
     """Normalize PSF and disable button once normalized."""
     global image_data
     if n_clicks == 0 or image_data["psf"] is None:
@@ -417,7 +446,8 @@ def normalize_psf(n_clicks: int, frame: int, color_scale: str):
     State(dict(type="image-slider", index="reconstruction"), "value"),
     prevent_initial_call=True,
 )
-def update_crop(center_x: int, center_y: int, radius: int, frame: int):
+def update_crop(center_x: int, center_y: int, radius: int, frame: int) -> px.imshow:
+    """Update the crop of the reconstruction."""
     if image_data["uncropped_reconstruction"] is None:
         return no_update
 
@@ -435,12 +465,14 @@ def update_crop(center_x: int, center_y: int, radius: int, frame: int):
     State(dict(type="color-scale", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def update_color_scale(color_scale: str, frame: int, id: str):
+def update_color_scale(color_scale: str, frame: int, id: str) -> px.imshow:
+    """Update the color scale of an image."""
     fig = plot_image(image_data[id["index"]][frame, :, :], color_scale=color_scale)
     return fig
 
 
-def start_app():
+def start_app() -> None:
+    """Start the Dash application."""
     match app_settings.WEB_API:
         case "flask":
             if not app_settings.DEBUG:

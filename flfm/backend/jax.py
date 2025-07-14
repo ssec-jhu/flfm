@@ -17,7 +17,17 @@ def rl_step(
     PSF_fft: jax.numpy.ndarray,  # [k, n, n/2+1]
     PSFt_fft: jax.numpy.ndarray,  # [k, n, n/2+1]
 ) -> jax.numpy.ndarray:
-    """Single step of the multiplicative Richardson-Lucy deconvolution algorithm."""
+    """Single step of the multiplicative Richardson-Lucy deconvolution algorithm.
+
+    Args:
+        data: The current estimate of the deconvolved image.
+        image: The observed image.
+        PSF_fft: The FFT of the point spread function.
+        PSFt_fft: The FFT of the time-reversed point spread function.
+
+    Returns:
+        The next estimate of the deconvolved image.
+    """
     # NOTE: This could use ``cls.rfft2``, however, we don't so that we can keep this func static.
     denominator = jax.numpy.fft.irfft2(PSF_fft * jax.numpy.fft.rfft2(data)).sum(axis=0, keepdims=True)  # [1, n, n]
     img_err = image / denominator
@@ -27,6 +37,8 @@ def rl_step(
 
 
 class JaxRestoration(BaseRestoration):
+    """JAX implementation of the restoration backend."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.compiled_rl_step = jax.jit(rl_step)
@@ -37,22 +49,27 @@ class JaxRestoration(BaseRestoration):
 
     @staticmethod
     def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kwargs):
+        """Compute the 2D real-to-complex FFT."""
         return jax.numpy.fft.rfft2(a, *args, axes=axis, **kwargs)
 
     @staticmethod
     def ones_like(a: ArrayLike, *args, **kwargs) -> ArrayLike:
+        """Return an array of ones with the same shape and type as a given array."""
         return jax.numpy.ones_like(a, *args, **kwargs)
 
     @staticmethod
     def flip(a: ArrayLike, *args, axis: Sequence[int] = None, **kwargs) -> ArrayLike:
+        """Reverse the order of elements in an array along the given axes."""
         return jax.numpy.flip(a, *args, axis=axis, **kwargs)
 
     @staticmethod
     def sum(a: ArrayLike, *args, axis: Sequence[int] = (1, 2), keepdims: bool = True, **kwargs):
+        """Sum of array elements over a given axis."""
         return jax.numpy.sum(a, axis=axis, keepdims=keepdims)
 
     @staticmethod
     def to_device(data: ArrayLike, device: str | Any = None) -> ArrayLike:
+        """Move data to a device."""
         # Jax, to some degree, handles this automatically when jitting. However, we could be explicit and implement
         # ``jax.Array.to_device()``, however, we can just leave this as a NoOp for now.
         return data
@@ -64,6 +81,7 @@ class JaxRestoration(BaseRestoration):
         img_size: tuple[int, int, int],
         psf_size: tuple[int, int, int],
     ) -> None:
+        """Export a model for use elsewhere."""
         import tensorflow as tf
         from jax.experimental import jax2tf
 
@@ -101,6 +119,8 @@ class JaxRestoration(BaseRestoration):
 
 
 class JaxIO(BaseIO):
+    """JAX implementation of the IO backend."""
+
     @staticmethod
     def open(filename: str | Path) -> ArrayLike:
         """Open a file and return it as a numpy array."""
