@@ -43,7 +43,7 @@ class TorchRestoration(BaseRestoration):
         self.compiled_rl_step = torch.jit.script(rl_step)
 
     @staticmethod
-    def rfft2(a: ArrayLike, *args, axis: Any = (-2, -1), **kwargs) -> ArrayLike:
+    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kwargs) -> ArrayLike:
         """Compute the 2D real-to-complex FFT."""
         return torch.fft.rfft2(a, *args, dim=axis, **kwargs)
 
@@ -65,7 +65,7 @@ class TorchRestoration(BaseRestoration):
         return data.to(device)
 
     @staticmethod
-    def sum(a: ArrayLike, *args, axis: Any = (1, 2), keepdims: bool = True, **kwargs):
+    def sum(a: ArrayLike, *args, axis: Sequence[int] = (1, 2), keepdims: bool = True, **kwargs):
         """Sum of array elements over a given axis."""
         return torch.sum(a, dim=axis, keepdim=keepdims)
 

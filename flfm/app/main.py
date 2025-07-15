@@ -7,6 +7,7 @@ from typing import Any
 
 import dash_bootstrap_components as dbc
 import plotly.express as px
+import plotly.graph_objects as go
 from dash import ALL, MATCH, Dash, Input, Output, State, callback, dcc, html, no_update
 from fastapi import FastAPI
 from numpy.typing import ArrayLike
@@ -40,7 +41,7 @@ dash_app = Dash(__name__, external_stylesheets=external_stylesheets, on_error=ex
 dash_server = dash_app.server
 
 
-def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_COLOR_SCALE, **kwargs) -> px.imshow:
+def plot_image(data: ArrayLike, *args, color_scale: str = app_settings.IMSHOW_COLOR_SCALE, **kwargs) -> go.Figure:
     """Plot an image using plotly.express.
 
     Args:
@@ -312,7 +313,7 @@ def enable_normalization_button(_: Any) -> bool:
 )
 def update_image_from_slider(
     value: int, tooltip: dict, n_frames: int, step_size: float, color_scale: str, id: dict[str, str]
-) -> tuple[px.imshow, dict]:
+) -> tuple[go.Figure, dict]:
     """Re-plot image based on frame/depth selected from slider."""
     global image_data
     # tooltip.transform (clientside js )would render faster than updating the template in a server side callback,
@@ -426,7 +427,7 @@ def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radi
     State(dict(type="color-scale", index="psf"), "value"),
     prevent_initial_call=True,
 )
-def normalize_psf(n_clicks: int, frame: int, color_scale: str) -> tuple[px.imshow, bool]:
+def normalize_psf(n_clicks: int, frame: int, color_scale: str) -> tuple[go.Figure, bool]:
     """Normalize PSF and disable button once normalized."""
     global image_data
     if n_clicks == 0 or image_data["psf"] is None:
@@ -446,7 +447,7 @@ def normalize_psf(n_clicks: int, frame: int, color_scale: str) -> tuple[px.imsho
     State(dict(type="image-slider", index="reconstruction"), "value"),
     prevent_initial_call=True,
 )
-def update_crop(center_x: int, center_y: int, radius: int, frame: int) -> px.imshow:
+def update_crop(center_x: int, center_y: int, radius: int, frame: int) -> go.Figure:
     """Update the crop of the reconstruction."""
     if image_data["uncropped_reconstruction"] is None:
         return no_update
@@ -465,7 +466,7 @@ def update_crop(center_x: int, center_y: int, radius: int, frame: int) -> px.ims
     State(dict(type="color-scale", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def update_color_scale(color_scale: str, frame: int, id: str) -> px.imshow:
+def update_color_scale(color_scale: str, frame: int, id: str) -> go.Figure:
     """Update the color scale of an image."""
     fig = plot_image(image_data[id["index"]][frame, :, :], color_scale=color_scale)
     return fig

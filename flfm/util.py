@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from numpy.typing import ArrayLike
 
 from flfm import __project__
 from flfm.settings import settings
@@ -75,7 +74,7 @@ def crop_and_apply_circle_mask(
     return sub_O * circle_mask  # [k, 2 * radius, 2 * radius]
 
 
-def find_files(directory: str | Path, ext: Optional[str] = None) -> list[Path]:
+def find_files(directory: str | Path, ext: str | None = None) -> list[Path]:
     """Find all files in a directory, filter on ext if given.
 
     Args:
