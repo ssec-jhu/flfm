@@ -8,7 +8,7 @@ from flfm import __project__, __version__
 
 
 project = __project__
-copyright = '2023, SSEC-JHU'
+copyright = '2025, SSEC-JHU'
 author = 'SSEC-JHU'
 
 release = __version__
@@ -19,12 +19,15 @@ version = __version__
 extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    'autoapi.extension',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
 ]
+
+autoapi_dirs = ['../../flfm']
+autoapi_add_toctree_entry = True
+autoapi_ignore = ['*test*']
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
