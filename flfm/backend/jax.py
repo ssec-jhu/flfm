@@ -1,5 +1,6 @@
 """FLFM observation reconstruction using JAX."""
 
+import os
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -9,6 +10,10 @@ from numpy.typing import ArrayLike
 from PIL import Image
 
 from flfm.backend.base import BaseIO, BaseRestoration
+from flfm.settings import settings
+
+# See https://docs.jax.dev/en/latest/gpu_memory_allocation.html
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = str(settings.GPU_MEMORY_PREALLOCATION).lower()
 
 
 def rl_step(
