@@ -69,7 +69,7 @@ Command-Line Interface
 
 .. code-block:: console
 
-   $ python -m flfm.cli main flfm/tests/data/yale/light_field_image.tif flfm/tests/data/yale/measured_psf.tif reconstructed_image.tiff --normalize_psf=True --lens_radius=230 --lens_center="(1000,980)" --backend=torch
+   $ flfm.cli main path/to/image.tif path/to/psf.tif output_image.tiff --normalize_psf=True --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 
 Web Application
 ---------------
@@ -84,6 +84,6 @@ Then, start the application:
 
 .. code-block:: console
 
-    $ python -m flfm.app.main
+    $ flfm.app.main
 
 The application will be available at http://127.0.0.1:8080.
