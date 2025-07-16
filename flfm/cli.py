@@ -11,6 +11,8 @@ import flfm.util  # noqa:  F401
 from flfm.backend import reload_backend
 from flfm.settings import settings
 
+from batch import batch_reconstruction
+
 ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
 BACKEND_SUCCESS = "FLFM {backend} loaded ✅"
 
@@ -104,10 +106,57 @@ def export(
     )
 
 
+def batch(
+        input_dir: str | Path,
+        output_dir: str | Path,
+        psf_filename: str | Path,
+        normalize_psf: bool = True,
+        n_workers: Optional[int] = None,
+        n_threads: int = 2,
+        clobber: bool = False,
+        recon_kwargs: Optional[dict] = None,
+        crop_kwargs: Optional[dict] = None,
+        carry_on: bool = False
+)-> list[Path]:
+    """Batch parallel process multiple 3D reconstructions of input light-field images present in `input_dir`.
+
+        Args:
+            input_dir: Input directory.
+            output_dir: Output directory.
+            psf_filename: PSF filename.
+            normalize_psf: Whether to normalize PSF before reconstruction. Defaults to True.
+            n_workers: Numbers of parallel workers.  Defaults to None.
+            n_threads: Number of threads per worker.  Defaults to 2.
+            clobber: Write over files in `output_dir`, otherwise raise if `output_dir` exists.
+                Defaults to `False`.
+            recon_kwargs: kwargs passed to `richardson_lucy()`.  Defaults to None.
+            crop_kwargs: kwargs pass to `flfm.util.crop_and_apply_circle_mask()`. Defaults to None.
+            carry_on: Whether to continue processing from a previous attempt. Will only process input
+                files not in `output_dir`.  Defaults to False.
+
+        Returns:
+           A comma seperated string of processed filenames.
+        """
+    processed_filenames = batch_reconstruction(
+        input_dir,
+        output_dir,
+        psf_filename,
+        normalize_psf=normalize_psf,
+        n_workers=n_workers,
+        n_threads=n_threads,
+        clobber=clobber,
+        recon_kwargs=recon_kwargs,
+        crop_kwargs=crop_kwargs,
+        carry_on=carry_on,
+    )
+    return ",".join(processed_filenames)
+
+
 if __name__ == "__main__":
     fire.Fire(
         {
             "main": main,
+            "batch": batch,
             "export": export,
         }
     )
