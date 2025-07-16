@@ -395,7 +395,7 @@ def upload_file(contents: str, filename: str) -> ArrayLike:
     prevent_initial_call=True,
 )
 def reconstruct(n_clicks: int, rl_iters: int, center_x: int, center_y: int, radius: int) -> list:
-    """RUN FLFM reconstruction and return reconstructed image."""
+    """Run FLFM reconstruction and return reconstructed image."""
     global image_data
     if n_clicks == 0:
         return no_update
@@ -466,7 +466,7 @@ def update_crop(center_x: int, center_y: int, radius: int, frame: int) -> go.Fig
     State(dict(type="color-scale", index=MATCH), "id"),
     prevent_initial_call=True,
 )
-def update_color_scale(color_scale: str, frame: int, id: str) -> go.Figure:
+def update_color_scale(color_scale: str, frame: int, id: dict[str, str]) -> go.Figure:
     """Update the color scale of an image."""
     fig = plot_image(image_data[id["index"]][frame, :, :], color_scale=color_scale)
     return fig
