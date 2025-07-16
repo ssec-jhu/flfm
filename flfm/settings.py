@@ -1,3 +1,5 @@
+"""Settings for the FLFM application."""
+
 from pathlib import Path
 from typing import Literal
 
@@ -7,6 +9,8 @@ _log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 
 class Settings(BaseSettings):
+    """General settings for the FLFM application."""
+
     model_config = SettingsConfigDict(env_prefix="FLFM_", case_sensitive=True)
     BACKEND: Literal["jax", "torch"] = "torch"
     DEFAULT_RL_ITERS: int = 10
@@ -18,11 +22,13 @@ class Settings(BaseSettings):
 
 
 class AppSettings(BaseSettings):
+    """Settings for the FLFM Dash application."""
+
     model_config = SettingsConfigDict(env_prefix="FLFM_APP_", case_sensitive=True)
     HOST: str = "127.0.0.1"
     PORT: int = 8080
     LOADING_TYPE: Literal["graph", "cube", "circle", "dot", "default"] = "default"
-    LOADING_DELAY_SHOW: int = 1e3  # (ms) See https://dash.plotly.com/dash-core-components/loading.
+    LOADING_DELAY_SHOW: int = 1000  # (ms) See https://dash.plotly.com/dash-core-components/loading.
     DEPTH_STEP_SIZE: float = 5
     DEPTH_UNIT: str = "µm"
     DEBUG: bool = False

@@ -35,6 +35,19 @@ def reconstruct(
     recon_kwargs: Optional[dict] = None,
     crop_kwargs: Optional[dict] = None,
 ) -> ArrayLike:
+    """Reconstruct an image from a light-field image and a PSF.
+
+    Args:
+        image: The light-field image.
+        psf: The point spread function.
+        normalize_psf: Whether to normalize the PSF.
+        output_filename: The filename to save the reconstruction to.
+        recon_kwargs: Keyword arguments to pass to the reconstruction algorithm.
+        crop_kwargs: Keyword arguments to pass to the cropping function.
+
+    Returns:
+        The reconstructed image.
+    """
     import flfm.io
 
     if isinstance(image, (str, Path)):

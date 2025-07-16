@@ -3,7 +3,7 @@
 import io
 import warnings
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 import fire
 
@@ -15,7 +15,12 @@ ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
 BACKEND_SUCCESS = "FLFM {backend} loaded ✅"
 
 
-def import_backend(backend: str):
+def import_backend(backend: str) -> None:
+    """Import the specified backend.
+
+    Args:
+        backend: The name of the backend to import.
+    """
     try:
         reload_backend(backend)
     except ImportError:
@@ -25,13 +30,13 @@ def import_backend(backend: str):
 
 
 def main(
-    img: Path | str | io.BytesIO,
-    psf: Path | str | io.BytesIO,
-    out: Path | str | io.BytesIO,
+    img: str | Path | io.BytesIO,
+    psf: str | Path | io.BytesIO,
+    out: str | Path | io.BytesIO,
     lens_radius: int,
     num_iters: int = 10,
     normalize_psf: bool = False,
-    lens_center: tuple[int, int] | None = None,
+    lens_center: Optional[tuple[int, int]] = None,
     backend: Literal["jax", "torch"] = settings.BACKEND,
 ) -> None:
     """Run the command line interface.
@@ -70,7 +75,7 @@ def main(
 
 
 def export(
-    out: Path | str | io.BytesIO,
+    out: str | Path | io.BytesIO,
     n_steps: int,
     backend: Literal["jax", "torch"] = "torch",
     img_size: tuple[int, int, int] = (1, 2048, 2048),
