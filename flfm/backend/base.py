@@ -33,7 +33,7 @@ class BaseRestoration(Singleton, ABC):
 
     @staticmethod
     @abstractmethod
-    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kargs) -> ArrayLike:
+    def rfft2(a: ArrayLike, *args, axis: Sequence[int] = (-2, -1), **kwargs) -> ArrayLike:
         """Compute the 2D real-to-complex FFT."""
         ...
 
