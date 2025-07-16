@@ -48,7 +48,7 @@ def mock_data(tmp_path):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Assert empty.
-    assert not flfm.util.find_files(output_dir)
+    assert not list(output_dir.glob("*.tif"))
 
     mock_batch_data(input_filename, output_dir, n_copies)
     return output_dir
@@ -57,7 +57,7 @@ def mock_data(tmp_path):
 @pytest.mark.skipif(os.environ.get("CI") == "true", reason="Runs out of memory.")
 class TestBatchReconstruction:
     def test_mock_data(self, mock_data):
-        assert len(flfm.util.find_files(mock_data)) == n_copies
+        assert len(list(mock_data.glob("*.tif"))) == n_copies
 
     def test_batch_reconstruction(self, mock_data):
         input_dir = mock_data
@@ -65,11 +65,11 @@ class TestBatchReconstruction:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Assert empty.
-        assert not flfm.util.find_files(output_dir)
+        assert not list(output_dir.glob("*.tif"))
 
         # Reduce memory consumption by only using half the # of CPUs.
         processed_files = batch_reconstruction(input_dir, output_dir, psf_filename, clobber=True, n_workers=n_workers)
-        assert len(flfm.util.find_files(mock_data)) == n_copies
+        assert len(list(mock_data.glob("*.tif"))) == n_copies
         assert len(processed_files) == n_copies
 
     def test_carry_on(self, mock_data):
@@ -78,21 +78,21 @@ class TestBatchReconstruction:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Assert empty.
-        assert not flfm.util.find_files(output_dir)
+        assert not list(output_dir.glob("*.tif"))
 
         # Copy half data to mock in complete initial run.
-        files = flfm.util.find_files(input_dir)
+        files = list(input_dir.glob("*.tif"))
         for i, filename in enumerate(files):
             if i >= len(files) // 2:
                 break
             shutil.copy(filename, output_dir / filename.name)
 
-        assert len(flfm.util.find_files(output_dir)) == n_copies // 2
+        assert len(list(output_dir.glob("*.tif"))) == n_copies // 2
 
         # Reduce memory consumption by only using half the # of CPUs.
         processed_files = batch_reconstruction(
             input_dir, output_dir, psf_filename, clobber=True, n_workers=2, carry_on=True
         )
 
-        assert len(flfm.util.find_files(mock_data)) == n_copies
+        assert len(list(mock_data.glob("*.tif"))) == n_copies
         assert len(processed_files) == len(files) - len(files) // 2

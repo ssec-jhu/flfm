@@ -74,27 +74,6 @@ def crop_and_apply_circle_mask(
     return sub_O * circle_mask  # [k, 2 * radius, 2 * radius]
 
 
-def find_files(directory: str | Path, ext: str | None = None) -> list[Path]:
-    """Find all files in a directory, filter on ext if given.
-
-    Args:
-        directory: The directory to search.
-        ext: The extension to filter on.
-
-    Returns:
-        A list of files.
-    """
-    directory = Path(directory)
-    file_list = []
-    for file in directory.iterdir():
-        if (ext is not None) and (not file.suffix == ext):
-            continue
-        full_path = directory / file
-        if full_path.is_file():
-            file_list.append(full_path.absolute())
-    return file_list
-
-
 def setup_logging(level: str = settings.LOG_LEVEL, format: str = settings.LOG_FORMAT, **kwargs):
     """Set up logging.
 

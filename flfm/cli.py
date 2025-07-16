@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import fire
-from batch import batch_reconstruction
 
 import flfm.util  # noqa:  F401
 from flfm.backend import reload_backend
+from flfm.batch import batch_reconstruction
 from flfm.settings import settings
 
 ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
@@ -30,17 +30,23 @@ def import_backend(backend: str) -> None:
         print(BACKEND_SUCCESS.format(backend=backend))
 
 
-def exception_handler(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as error:
-            print(error)
+def exception_handler(debug):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as error:
+                if debug:
+                    raise error
+                else:
+                    print(error)
 
-    return wrapper
+        return wrapper
+
+    return decorator
 
 
-@exception_handler
+@exception_handler(settings.DEBUG_CLI)
 def main(
     img: str | Path | io.BytesIO,
     psf: str | Path | io.BytesIO,
@@ -86,7 +92,7 @@ def main(
     flfm.io.save(out, cropped)
 
 
-@exception_handler
+@exception_handler(settings.DEBUG_CLI)
 def export(
     out: str | Path | io.BytesIO,
     n_steps: int,
@@ -117,11 +123,12 @@ def export(
     )
 
 
-@exception_handler
+@exception_handler(settings.DEBUG_CLI)
 def batch(
     input_dir: str | Path,
     output_dir: str | Path,
     psf_filename: str | Path,
+    filename_pattern: str = "*",
     normalize_psf: bool = True,
     n_workers: Optional[int] = None,
     n_threads: int = 2,
@@ -136,6 +143,7 @@ def batch(
         input_dir: Input directory.
         output_dir: Output directory.
         psf_filename: PSF filename.
+        filename_pattern: input filename glob pattern. Defaults to "*".
         normalize_psf: Whether to normalize PSF before reconstruction. Defaults to True.
         n_workers: Numbers of parallel workers.  Defaults to None.
         n_threads: Number of threads per worker.  Defaults to 2.
@@ -153,6 +161,7 @@ def batch(
         input_dir,
         output_dir,
         psf_filename,
+        filename_pattern=filename_pattern,
         normalize_psf=normalize_psf,
         n_workers=n_workers,
         n_threads=n_threads,
@@ -161,7 +170,7 @@ def batch(
         crop_kwargs=crop_kwargs,
         carry_on=carry_on,
     )
-    print(",".join(processed_filenames))
+    print(",".join(map(str, processed_filenames)))
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     DEFAULT_CENTER_X: int = 1000
     DEFAULT_CENTER_Y: int = 980
     DEFAULT_RADIUS: int = 230
+    DEBUG_CLI: bool = False
 
 
 class AppSettings(BaseSettings):
