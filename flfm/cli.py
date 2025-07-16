@@ -30,7 +30,13 @@ def import_backend(backend: str) -> None:
         print(BACKEND_SUCCESS.format(backend=backend))
 
 
-def exception_handler(debug):
+def exception_handler(debug: bool):
+    """Command line exception handler
+
+    Args:
+        debug: Raises exceptions if True and prints exception message if False.
+    """
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             try:
