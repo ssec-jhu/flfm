@@ -54,7 +54,6 @@ def mock_data(tmp_path):
     return output_dir
 
 
-@pytest.mark.skipif(os.environ.get("CI") == "true", reason="Runs out of memory.")
 class TestBatchReconstruction:
     def test_mock_data(self, mock_data):
         assert len(list(mock_data.glob("*.tif"))) == n_copies
