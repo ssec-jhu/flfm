@@ -18,6 +18,16 @@ volumetric imaging at the exposure time of the camera, a speed unmatched by conv
 This fast imaging is particularly useful for samples with transient signals, where the time spent scanning will miss
 relevant information. For example, FLFM is ideal for capturing the transient activity of point-like neurons in 3D.
 
+
+# Quickstart
+
+```term
+pip install git+https://github.com/ssec-jhu/flfm.git
+```
+
+See [Usage](#usage) for quick and easy usage instructions.
+
+
 # Installation, Build, & Run instructions
 
 ### Git LFS:
@@ -70,7 +80,7 @@ For additional cmds see the [Conda cheat-sheet](https://docs.conda.io/projects/c
 
 ### Usage
 
-Follow the above [Build with Python ecosystem instructions](#with-python-ecosystem).
+Follow the above [Quickstart](#quickstart) or [Build with Python ecosystem instructions](#with-python-ecosystem).
 
 Using the command line interface (i.e., from a terminal prompt):
 ```term
