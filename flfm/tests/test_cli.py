@@ -57,3 +57,18 @@ class TestCli:
             assert out_stream.is_file() and out_stream.suffix == ".pt"
         else:
             assert not out_stream.is_file()
+
+    def test_cli_batch(self, tmp_path: Path, backend: str):
+        """Test the batch command line interface."""
+        out_dir = tmp_path / "batched_files"
+
+        # Assert out dir starts empty.
+        assert not list(out_dir.glob("*"))
+
+        filename_pattern = "light*.tif"
+        input_dir = flfm.util.find_package_location() / "tests" / "data" / "yale"
+        flfm.cli.batch(
+            input_dir, out_dir, input_dir / "measured_psf.tif", filename_pattern=filename_pattern, n_workers=1
+        )
+
+        assert len(list(out_dir.glob("*"))) == len(list(input_dir.glob(filename_pattern)))

@@ -15,6 +15,7 @@ def batch_reconstruction(
     input_dir: str | Path,
     output_dir: str | Path,
     psf_filename: str | Path,
+    filename_pattern: str = "*",
     normalize_psf: bool = True,
     n_workers: Optional[int] = None,
     n_threads: int = 2,
@@ -29,6 +30,7 @@ def batch_reconstruction(
         input_dir: Input directory.
         output_dir: Output directory.
         psf_filename: PSF filename.
+        filename_pattern: input filename glob pattern. Defaults to "*".
         normalize_psf: Whether to normalize PSF before reconstruction. Defaults to True.
         n_workers: Numbers of parallel workers.  Defaults to None.
         n_threads: Number of threads per worker.  Defaults to 2.
@@ -46,12 +48,15 @@ def batch_reconstruction(
     output_dir.mkdir(parents=True, exist_ok=clobber or carry_on)
 
     input_dir = Path(input_dir)
-    input_filenames = flfm.util.find_files(input_dir)
+    input_filenames = list(input_dir.glob(filename_pattern))
+
+    if not input_filenames:
+        raise FileNotFoundError(f"No input files found in {input_dir}")
 
     psf_filename = Path(psf_filename)
 
     if carry_on:
-        existing_output_files = [x.name for x in flfm.util.find_files(output_dir)]
+        existing_output_files = [x.name for x in output_dir.glob(filename_pattern)]
         n_input_files = len(input_filenames)
         input_filenames = [x for x in input_filenames if x.name not in existing_output_files]
         print(f"Carrying on batch processing at {len(input_filenames)}/{n_input_files}.")
@@ -67,7 +72,7 @@ def batch_reconstruction(
         futures = []
         for i, filename in enumerate(input_filenames):
             print(f"({i + 1}/{len(input_filenames)}): Processing '{filename}'...")
-            output_filename = output_dir / filename
+            output_filename = output_dir / filename.name
             future = client.submit(
                 flfm.restoration.reconstruct,
                 psf_filename,
