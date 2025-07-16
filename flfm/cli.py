@@ -31,6 +31,16 @@ def import_backend(backend: str) -> None:
         print(BACKEND_SUCCESS.format(backend=backend))
 
 
+def exception_handler(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as error:
+            print(error)
+    return wrapper
+
+
+@exception_handler
 def main(
     img: str | Path | io.BytesIO,
     psf: str | Path | io.BytesIO,
@@ -76,6 +86,7 @@ def main(
     flfm.io.save(out, cropped)
 
 
+@exception_handler
 def export(
     out: str | Path | io.BytesIO,
     n_steps: int,
@@ -106,6 +117,7 @@ def export(
     )
 
 
+@exception_handler
 def batch(
         input_dir: str | Path,
         output_dir: str | Path,
@@ -149,7 +161,7 @@ def batch(
         crop_kwargs=crop_kwargs,
         carry_on=carry_on,
     )
-    return ",".join(processed_filenames)
+    print(",".join(processed_filenames))
 
 
 if __name__ == "__main__":

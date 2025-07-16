@@ -48,6 +48,9 @@ def batch_reconstruction(
     input_dir = Path(input_dir)
     input_filenames = flfm.util.find_files(input_dir)
 
+    if not input_filenames:
+        raise FileNotFoundError(f"No input files found in {input_dir}")
+
     psf_filename = Path(psf_filename)
 
     if carry_on:
