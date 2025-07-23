@@ -31,8 +31,7 @@ def start_real_server():
     time.sleep(5)  # Both the new process & server take time to start up.
 
     if not proc.is_alive():
-        # raise RuntimeError("Server did not start")
-        ...
+        raise RuntimeError("Server did not start")
 
     def _kill():
         proc.kill()
