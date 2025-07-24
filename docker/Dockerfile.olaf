@@ -74,7 +74,7 @@ WORKDIR ../../
 
 WORKDIR /
 COPY flfm/ /flfm
-COPY data/ /data
+COPY flfm/tests/data/ /data
 
 ENV MLM_LICENSE_FILE /sciserver/vc_crypt/ssec/jnoss/MLM_LICENSE_FILE
 
