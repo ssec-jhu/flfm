@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     DEFAULT_CENTER_Y: int = 980
     DEFAULT_RADIUS: int = 230
     DEBUG_CLI: bool = False
+    GPU_MEMORY_PREALLOCATION: bool = False  # Only applicable for BACKEND = "jax".
 
 
 class AppSettings(BaseSettings):
