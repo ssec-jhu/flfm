@@ -7,6 +7,8 @@ import flfm.backend.jax
 import flfm.backend.torch
 import flfm.cli
 import flfm.util
+from flfm.app.tests.test_app import server_test
+from flfm.settings import app_settings
 from flfm.tests.conftest import arr_to_stream
 
 
@@ -72,3 +74,7 @@ class TestCli:
         )
 
         assert len(list(out_dir.glob("*"))) == len(list(input_dir.glob(filename_pattern)))
+
+    @pytest.mark.parametrize("port", (app_settings.PORT, app_settings.PORT + 1))
+    def test_dash_ui(self, port, backend: str) -> None:
+        server_test(port=port, target=flfm.cli.start_app, kwargs={"port": port})

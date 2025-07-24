@@ -21,18 +21,17 @@ IDS = ("psf", "image", "reconstruction")
 FILENAMES = {IDS[0]: PSF_FILENAME, IDS[1]: IMAGE_FILENAME}
 
 
-def start_real_server():
+def start_real_server(target=flfm.app.main.start_app, args=(), kwargs=None):
     # Start a real server on a separate process. It's easier to kill a process than a thread.
     # For the majority of tests we can just use ``dash.testing`` or ``fastapi.testclient`` instead of this. However, it
     # would be good to still test prd deployment run code.
 
-    proc = Process(target=flfm.app.main.start_app)
+    proc = Process(target=target, args=args, kwargs=kwargs or {})
     proc.start()
     time.sleep(5)  # Both the new process & server take time to start up.
 
     if not proc.is_alive():
-        # raise RuntimeError("Server did not start")
-        ...
+        raise RuntimeError("Server did not start")
 
     def _kill():
         proc.kill()
@@ -40,6 +39,22 @@ def start_real_server():
         return proc
 
     return proc, _kill
+
+
+def server_test(host=app_settings.HOST, port=app_settings.PORT, target=flfm.app.main.start_app, args=(), kwargs=None):
+    url = f"http://{host}:{port}"
+
+    # Assert server is not already running.
+    with pytest.raises(requests.exceptions.ConnectionError):
+        requests.get(url)
+
+    try:
+        _proc, stop_server = start_real_server(target=target, args=args, kwargs=kwargs or {})
+        response = requests.get(url)
+        assert response.status_code == 200
+    finally:
+        if stop_server:
+            stop_server()
 
 
 class TestUtility:
@@ -94,19 +109,7 @@ class TestRunServer:
         monkeypatch.setenv("FLFM_APP_DUMMY_PSF_FILEPATH", str(PSF_FILENAME))
         monkeypatch.setenv("FLFM_APP_DUMMY_LIGHT_FILED_IMAGE_FILEPATH", str(IMAGE_FILENAME))
 
-        url = f"http://{app_settings.HOST}:{app_settings.PORT}"
-
-        # Assert server is not already running.
-        with pytest.raises(requests.exceptions.ConnectionError):
-            requests.get(url)
-
-        try:
-            _proc, stop_server = start_real_server()
-            response = requests.get(url)
-            assert response.status_code == 200
-        finally:
-            if stop_server:
-                stop_server()
+        server_test()
 
 
 @pytest.fixture

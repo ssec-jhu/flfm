@@ -25,8 +25,14 @@ relevant information. For example, FLFM is ideal for capturing the transient act
 pip install git+https://github.com/ssec-jhu/flfm.git
 ```
 
-See [Usage](#usage) for quick and easy usage instructions.
+See [Usage](#usage) for quick and easy usage instructions for this Python package.
 
+To start using the local GUI application run:
+```term
+pip install -r requirements/app.txt
+python flfm/cli.py app
+```
+For further detail regarding the GUI application see [Starting the UI app](#starting-the-ui-app) and [GUI user manual](https://flfm.readthedocs.io/en/latest/gui.html). 
 
 # Installation, Build, & Run instructions
 
@@ -167,7 +173,7 @@ FLFM_APP_WEB_API=flask gunicorn flfm.app.main:dash_server -b 127.0.0.1:8080
 
 # ImageJ Plugin
 
-A plugin for [ImageJ](https://imagej.net/ij/) is avaliable from [ssec-jhu/flfm-ij-plugin](https://github.com/ssec-jhu/flfm-ij-plugin).
+A plugin for [ImageJ](https://imagej.net/ij/) is available from [ssec-jhu/flfm-ij-plugin](https://github.com/ssec-jhu/flfm-ij-plugin).
 
 # Testing
 _NOTE: The following steps require ``pip install -r requirements/dev.txt``._

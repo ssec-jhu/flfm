@@ -179,11 +179,31 @@ def batch(
     print(",".join(map(str, processed_filenames)))
 
 
+def start_app(host: str = None, port: int = None) -> None:
+    """Start the Dash application.
+
+    Args:
+       host: Host IP address or URL for server to listen on. Defaults to `flfm.settings.app_settings.HOST`.
+       port: Port number to listen on. Defaults to `flfm.settings.app_settings.PORT`
+    """
+    from flfm.app.main import start_app
+    from flfm.settings import app_settings
+
+    if host:
+        app_settings.HOST = host
+
+    if port:
+        app_settings.PORT = port
+
+    start_app()
+
+
 if __name__ == "__main__":
     fire.Fire(
         {
             "main": main,
             "batch": batch,
             "export": export,
+            "app": start_app,
         }
     )

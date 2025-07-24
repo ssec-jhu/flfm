@@ -71,8 +71,8 @@ Command-Line Interface
 
    $ flfm.cli main path/to/image.tif path/to/psf.tif output_image.tiff --normalize_psf=True --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 
-Web Application
----------------
+GUI
+---
 
 `flfm` also includes a web-based user interface for interactive reconstructions. To use it, first install the application dependencies:
 
@@ -84,11 +84,13 @@ Then, start the application:
 
 .. code-block:: console
 
-    $ flfm.app.main
+    $ python flfm/cli.py app --host=127.0.0.1 --port=8080
 
 The application will be available at http://127.0.0.1:8080.
+
+.. note:: See :doc:`gui` for further details.
 
 ImageJ Plugin
 -------------
 
-A plugin for `ImageJ <https://imagej.net/ij/>`_ is avaliable from `ssec-jhu/flfm-ij-plugin <https://github.com/ssec-jhu/flfm-ij-plugin>`_.
+A plugin for `ImageJ <https://imagej.net/ij/>`_ is available from `ssec-jhu/flfm-ij-plugin <https://github.com/ssec-jhu/flfm-ij-plugin>`_.
