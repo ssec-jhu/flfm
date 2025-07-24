@@ -30,7 +30,7 @@ See [Usage](#usage) for quick and easy usage instructions for this Python packag
 To start using the local GUI application run:
 ```term
 pip install -r requirements/app.txt
-python flfm/cli.py app --host=127.0.0.1 --port=8080
+python flfm/cli.py app
 ```
 For further detail regarding the GUI application see [Starting the UI app](#starting-the-ui-app) and [GUI user manual](https://flfm.readthedocs.io/en/latest/gui.html). 
 
