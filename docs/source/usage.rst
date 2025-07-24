@@ -93,4 +93,4 @@ The application will be available at http://127.0.0.1:8080.
 ImageJ Plugin
 -------------
 
-A plugin for `ImageJ <https://imagej.net/ij/>`_ is avaliable from `ssec-jhu/flfm-ij-plugin <https://github.com/ssec-jhu/flfm-ij-plugin>`_.
+A plugin for `ImageJ <https://imagej.net/ij/>`_ is available from `ssec-jhu/flfm-ij-plugin <https://github.com/ssec-jhu/flfm-ij-plugin>`_.

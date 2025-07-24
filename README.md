@@ -173,7 +173,7 @@ FLFM_APP_WEB_API=flask gunicorn flfm.app.main:dash_server -b 127.0.0.1:8080
 
 # ImageJ Plugin
 
-A plugin for [ImageJ](https://imagej.net/ij/) is avaliable from [ssec-jhu/flfm-ij-plugin](https://github.com/ssec-jhu/flfm-ij-plugin).
+A plugin for [ImageJ](https://imagej.net/ij/) is available from [ssec-jhu/flfm-ij-plugin](https://github.com/ssec-jhu/flfm-ij-plugin).
 
 # Testing
 _NOTE: The following steps require ``pip install -r requirements/dev.txt``._
