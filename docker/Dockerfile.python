@@ -8,12 +8,13 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /
 COPY flfm/ /app/flfm
-COPY data/ /data
+COPY flfm/tests/data/ /data
 COPY notebooks/ /notebooks
 COPY pyproject.toml /app/pyproject.toml
 
 COPY requirements/build.txt /build.txt
 COPY requirements/prd.txt /prd.txt
+COPY requirements/pytorch.txt /pytorch.txt
 
 RUN pip3 install -r prd.txt
 RUN pip3 install -r build.txt
