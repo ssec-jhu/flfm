@@ -5,6 +5,7 @@ import pytest
 
 import flfm.backend.jax
 import flfm.backend.torch
+import flfm.backend.numpy
 import flfm.io
 import flfm.restoration
 import flfm.util
@@ -13,8 +14,11 @@ from flfm.settings import settings
 from flfm.tests.conftest import arr_to_stream
 
 
+BACKENDS = ("torch", "jax", "numpy")
+
+
 class TestBackendReload:
-    @pytest.mark.parametrize("backend", ["torch", "jax"])
+    @pytest.mark.parametrize("backend", BACKENDS)
     def test_reload_backend(self, backend):
         reload_backend(backend)
         assert settings.BACKEND == backend
@@ -34,6 +38,13 @@ class TestBackendReload:
                 assert flfm.restoration.Restoration is flfm.backend.torch.TorchRestoration()
                 assert flfm.restoration.sum is flfm.backend.torch.TorchRestoration().sum
                 assert flfm.restoration.export_model is flfm.backend.torch.TorchRestoration().export_model
+            case "numpy":
+                assert flfm.io.IO is flfm.backend.numpy.NumpyIO()
+                assert flfm.io.open is flfm.backend.numpy.NumpyIO().open
+                assert flfm.io.save is flfm.backend.numpy.NumpyIO().save
+                assert flfm.restoration.Restoration is flfm.backend.numpy.NumpyRestoration()
+                assert flfm.restoration.sum is flfm.backend.numpy.NumpyRestoration().sum
+                assert flfm.restoration.export_model is flfm.backend.numpy.NumpyRestoration().export_model
             case _:
                 raise NotImplementedError
 
@@ -51,9 +62,9 @@ class TestBackend:
         assert flfm.backend.jax.JaxRestoration() is flfm.backend.jax.JaxRestoration()
         assert flfm.backend.torch.TorchRestoration() is flfm.backend.torch.TorchRestoration()
 
-    @pytest.mark.parametrize("backend", ["torch", "jax"])
+    @pytest.mark.parametrize("backend", BACKENDS)
     def test_simple_integration(self, backend):
-        """Test the integration of the jac backend."""
+        """Test the backend integration."""
 
         # Explicitly import for sanity rather than using ``flfm.backend.reload_backend``.
         match backend:
@@ -63,6 +74,9 @@ class TestBackend:
             case "torch":
                 io_backend = flfm.backend.torch.TorchIO()
                 restoration_backend = flfm.backend.torch.TorchRestoration()
+            case "numpy":
+                io_backend = flfm.backend.numpy.NumpyIO()
+                restoration_backend = flfm.backend.numpy.NumpyRestoration()
             case _:
                 raise NotImplementedError
 

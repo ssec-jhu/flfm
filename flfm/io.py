@@ -13,6 +13,11 @@ match settings.BACKEND:
 
         IO = TorchIO()
         assert IO is TorchIO()
+    case "numpy":
+        from flfm.backend.numpy import NumpyIO
+
+        IO = NumpyIO()
+        assert IO is NumpyIO()
     case _:
         raise NotImplementedError
 
