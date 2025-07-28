@@ -4,15 +4,14 @@ import numpy as np
 import pytest
 
 import flfm.backend.jax
-import flfm.backend.torch
 import flfm.backend.numpy
+import flfm.backend.torch
 import flfm.io
 import flfm.restoration
 import flfm.util
 from flfm.backend import reload_backend
 from flfm.settings import settings
 from flfm.tests.conftest import arr_to_stream
-
 
 BACKENDS = ("torch", "jax", "numpy")
 

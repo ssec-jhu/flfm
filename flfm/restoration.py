@@ -20,7 +20,7 @@ match settings.BACKEND:
 
         Restoration = TorchRestoration()
         assert Restoration is TorchRestoration()
-    case "numpy":
+    case "numpy" | "cupy" | "cupynumeric":
         from flfm.backend.numpy import NumpyRestoration
 
         Restoration = NumpyRestoration()
