@@ -1,5 +1,6 @@
 """FLFM observation reconstruction."""
 
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -62,7 +63,12 @@ def reconstruct(
     if recon_kwargs is None:
         recon_kwargs = {}
 
+    t0 = time.perf_counter()
     reconstruction = Restoration.richardson_lucy(image, psf, **recon_kwargs)
+    t1 = time.perf_counter()
+
+    if settings.TIME_RECONSTRUCTION:
+        print(f"Reconstruction took {t1 - t0} seconds.")
 
     if isinstance(crop_kwargs, dict):
         reconstruction = flfm.util.crop_and_apply_circle_mask(reconstruction, **crop_kwargs)
