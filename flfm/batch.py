@@ -6,7 +6,6 @@ from typing import Optional
 
 from dask.distributed import LocalCluster
 
-import flfm.util
 from flfm.settings import settings
 
 
