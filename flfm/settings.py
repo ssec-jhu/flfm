@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     DEFAULT_RADIUS: int = 230
     DEBUG_CLI: bool = False
     GPU_MEMORY_PREALLOCATION: bool = False  # Only applicable for BACKEND = "jax".
+    TIME_RECONSTRUCTION: bool = False  # Print reconstruction runtime in seconds. This does not include any file IO.
 
 
 class AppSettings(BaseSettings):
