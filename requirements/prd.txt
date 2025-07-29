@@ -8,4 +8,6 @@ numpy==2.1.3
 tensorflow==2.19.0
 pillow==11.3.0
 pydantic-settings==2.10.1
+#nvidia-cupynumeric==25.7.0
+#cupy==13.5.1
 -r pytorch.txt

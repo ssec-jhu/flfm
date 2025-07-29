@@ -61,7 +61,7 @@ def main(
     num_iters: int = 10,
     normalize_psf: bool = False,
     lens_center: Optional[tuple[int, int]] = None,
-    backend: Literal["jax", "torch"] = settings.BACKEND,
+    backend: Literal["jax", "torch", "numpy", "cupy", "cupynumeric"] = settings.BACKEND,
 ) -> None:
     """Run the command line interface.
 

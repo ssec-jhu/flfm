@@ -13,8 +13,13 @@ match settings.BACKEND:
 
         IO = TorchIO()
         assert IO is TorchIO()
+    case "numpy" | "cupy" | "cupynumeric":
+        from flfm.backend.numpy import NumpyIO
+
+        IO = NumpyIO()
+        assert IO is NumpyIO()
     case _:
-        raise NotImplementedError
+        raise NotImplementedError(f"Unsupported backend: '{settings.BACKEND}'")
 
 
 open = IO.open

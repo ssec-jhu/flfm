@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """General settings for the FLFM application."""
 
     model_config = SettingsConfigDict(env_prefix="FLFM_", case_sensitive=True)
-    BACKEND: Literal["jax", "torch"] = "torch"
+    BACKEND: Literal["jax", "torch", "numpy", "cupy", "cupynumeric"] = "torch"
     DEFAULT_RL_ITERS: int = 10
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = _log_format
