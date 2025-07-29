@@ -1,6 +1,8 @@
 import io
+import sys
 
 import numpy as np
+import pytest
 from PIL import Image
 
 
@@ -19,3 +21,17 @@ def arr_to_stream(arr: np.ndarray) -> io.BytesIO:
     )
     stream.seek(0)
     return stream
+
+
+@pytest.fixture(autouse=True)
+def reset_settings():
+    from flfm.settings import settings
+
+    settings.__init__()  # Reset. See https://docs.pydantic.dev/latest/concepts/pydantic_settings/#in-place-reloading
+    for k, field in settings.__class__.model_fields.items():
+        assert getattr(settings, k) == field.default
+
+
+@pytest.fixture(autouse=True, scope="module")
+def clear_all_imports():
+    sys.modules.clear()
