@@ -6,8 +6,6 @@ from typing import Optional
 
 from dask.distributed import LocalCluster
 
-import flfm.restoration
-import flfm.util
 from flfm.settings import settings
 
 
@@ -44,6 +42,8 @@ def batch_reconstruction(
     Returns:
        A list of processed filenames.
     """
+    import flfm.restoration
+
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=clobber or carry_on)
 
