@@ -1,7 +1,7 @@
 --index-url https://download.pytorch.org/whl/cpu
 --extra-index-url https://pypi.org/simple
-dask==2025.5.1
-distributed==2025.5.1
+dask==2025.7.0
+distributed==2025.7.0
 fire==0.7.0
 jax==0.6.2
 numpy==2.1.3
