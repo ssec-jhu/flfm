@@ -27,7 +27,7 @@ extensions = [
 
 autoapi_dirs = ['../../flfm']
 autoapi_add_toctree_entry = True
-autoapi_ignore = ['*tests*', '_version.py']
+autoapi_ignore = ['*tests*', '*_version.py']
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
