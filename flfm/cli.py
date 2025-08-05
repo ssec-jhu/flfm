@@ -9,7 +9,6 @@ import fire
 
 import flfm.util  # noqa:  F401
 from flfm.backend import reload_backend
-from flfm.batch import batch_reconstruction
 from flfm.settings import settings
 
 ERR_BACKEND_MSSG = "FLFM {backend} not found ❌"
@@ -163,6 +162,8 @@ def batch(
     Returns:
        A comma seperated string of processed filenames.
     """
+    from flfm.batch import batch_reconstruction
+
     processed_filenames = batch_reconstruction(
         input_dir,
         output_dir,
