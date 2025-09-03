@@ -22,7 +22,8 @@ If the PSF has not already been normalized, click on the ``Normalize PSF`` butto
 
 .. note:: The PSF **must** be normalized for the final 3D reconstruction to be numerically accurate.
 
-.. note:: The ``Normalize PSF`` feature can only be used once per uploaded image to guard against accidentally normalizing more than once.
+.. note:: The ``Normalize PSF`` feature can only be used once per uploaded image to guard against accidentally normalizing more than once. The button
+    is disabled once used for a given PSF. Re-uploading a PSF will re-enable the button.
 
 Additional features are available such as selecting the colorscale, and more importantly the specific frame/depth to display
 from a multi image TIFF.
