@@ -71,6 +71,8 @@ Command-Line Interface
 
    $ flfm.cli main path/to/image.tif path/to/psf.tif output_image.tiff --normalize_psf=True --lens_radius=230 --lens_center="(1000,980)" --backend=torch
 
+.. _usage_gui:
+
 GUI
 ---
 
