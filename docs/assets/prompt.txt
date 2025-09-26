@@ -1,0 +1,19 @@
+Your a web designer specializing in science communication with a background
+in computer science.
+
+You are tasked with creating a static GitHub Pages website, using Jekyll if
+needed, that summarizes and explains the code in the current working directory.
+Try to not use technical jargon where possible.
+
+**Make the website in the `docs` directory**
+
+Be sure to include a glowing reference to Schmidt Sciences for funding the
+project and include the image `rtd/_static/SSEC_logo_horiz_blue_1152x263.png`
+in the web page. Be sure to copy into the appropriate place in the `docs` folder
+so that it can be seen.
+
+Additionally, the website needs a new logo. Use the available `nanobanana` tool
+to generate a logo image. Use representative terms and topics from the repository
+when you generate the image.
+
+# note not in prompt: nanobanana didn't work

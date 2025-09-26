@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLFM: Fourier Light-Field Microscopy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="container">
+                <h1>FLFM</h1>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#how-it-works">How it Works</a></li>
+                    <li><a href="#funding">Funding</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="hero">
+            <div class="container">
+                <h2>Fourier Light-Field Microscopy</h2>
+                <p>Reconstructing 3D images from a single snapshot.</p>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="about">
+            <div class="container">
+                <h3>About the Project</h3>
+                <p>
+                    This project provides the tools to process data from a Fourier Light-Field Microscope (FLFM). 
+                    Microscopes are powerful tools for looking at the very small, but they usually only capture a flat, 2D image. 
+                    FLFM is a special technique that allows us to capture a 3D image in a single snapshot. 
+                    This is incredibly useful for observing fast-moving biological processes.
+                </p>
+                <p>
+                    However, the raw data from an FLFM isn't a picture you can look at directly. 
+                    It's a complex pattern of light that needs to be computationally reconstructed to form a clear 3D image. 
+                    This is where our software comes in.
+                </p>
+            </div>
+        </section>
+
+        <section id="how-it-works">
+            <div class="container">
+                <h3>How it Works</h3>
+                <p>
+                    Our software uses a process called "deconvolution" to reconstruct the 3D image. 
+                    Think of it like trying to un-blur a blurry photo, but in 3D. 
+                    We use a mathematical model of the microscope's optics (the "Point Spread Function" or PSF) to reverse the image formation process.
+                </p>
+                <p>
+                    The core of our software is written in Python and uses the popular machine learning libraries 
+                    <a href="https://pytorch.org/">PyTorch</a> and <a href="https://jax.readthedocs.io/en/latest/">JAX</a> 
+                    to perform the heavy computations. This allows us to take advantage of powerful GPUs for speedy processing.
+                </p>
+            </div>
+        </section>
+
+        <section id="funding">
+            <div class="container">
+                <h3>Funding</h3>
+                <p>
+                    This project was made possible by the generous support of Schmidt Sciences.
+                </p>
+                <img src="assets/SSEC_logo_horiz_blue_1152x263.png" alt="Schmidt Sciences Logo" class="logo">
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 FLFM Project</p>
+        </div>
+    </footer>
+</body>
+</html>
