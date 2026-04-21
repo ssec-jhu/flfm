@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> This project has completed development and has been delivered. Continued development is now happening here: [https://github.com/OpenFLR/flfm](https://github.com/OpenFLR/flfm).
+
 # SSEC-JHU flfm
 
 [![CI](https://github.com/ssec-jhu/flfm/actions/workflows/ci.yml/badge.svg)](https://github.com/ssec-jhu/flfm/actions/workflows/ci.yml)
