@@ -41,17 +41,36 @@ def start_real_server(target=flfm.app.main.start_app, args=(), kwargs=None):
     return proc, _kill
 
 
-def server_test(host=app_settings.HOST, port=app_settings.PORT, target=flfm.app.main.start_app, args=(), kwargs=None):
+def server_test(
+    host=app_settings.HOST,
+    port=app_settings.PORT,
+    target=flfm.app.main.start_app,
+    args=(),
+    kwargs=None,
+    startup_timeout=30,
+    request_interval=0.5,
+):
     url = f"http://{host}:{port}"
 
     # Assert server is not already running.
     with pytest.raises(requests.exceptions.ConnectionError):
-        requests.get(url)
+        requests.get(url, timeout=1)
 
+    stop_server = None
     try:
         _proc, stop_server = start_real_server(target=target, args=args, kwargs=kwargs or {})
-        response = requests.get(url)
-        assert response.status_code == 200
+        end_time = time.monotonic() + startup_timeout
+        last_error = None
+        while time.monotonic() < end_time:
+            try:
+                response = requests.get(url, timeout=1)
+                assert response.status_code == 200
+                return
+            except requests.exceptions.RequestException as error:
+                last_error = error
+                time.sleep(request_interval)
+
+        raise AssertionError(f"Server did not become ready at {url} within {startup_timeout} seconds.") from last_error
     finally:
         if stop_server:
             stop_server()
